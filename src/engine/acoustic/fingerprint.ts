@@ -8,10 +8,18 @@ import { fftRadix2, hannWindow } from './fft';
  * roof) scores ~0.86 against a stored high-band-weighted reference despite
  * being a different signal. 0.90 sits above that failure mode while genuine
  * same-room samples land at 0.95+.
+ *
+ * The geometric/temporal fields govern the PositionEngine's correction
+ * policy (candidate radius, consecutive-agreement streak); the matcher
+ * itself only uses the two similarity gates.
  */
 export const DEFAULT_ACOUSTIC_MATCH_CONFIG: AcousticMatchConfig = {
   minConfidence: 0.9,
   minMargin: 0.08,
+  candidateBaseRadiusM: 6,
+  candidateUncertaintyFactor: 2,
+  consecutiveAgreements: 3,
+  maxStreakGapMs: 60_000,
 };
 
 export interface FingerprintOptions {
@@ -126,39 +134,63 @@ function compatible(a: AcousticFingerprint, b: AcousticFingerprint): boolean {
   );
 }
 
+export interface FingerprintScore {
+  zoneId: string;
+  similarity: number;
+}
+
 /**
- * Match a runtime ambient sample against the stored per-zone fingerprints.
- *
- * Returns null — deliberately, and often — unless BOTH gates pass:
- *  - confidence gate: cosine similarity to the best reference >= minConfidence.
- *    A sample that resembles no stored room produces mid/low similarity across
- *    the board and is rejected (no false-positive snap).
- *  - margin gate: the best reference must beat the runner-up by >= minMargin.
- *    Two acoustically similar rooms (e.g. two quiet galleries on the same HVAC
- *    loop) will both score high — the margin gate refuses to guess between
- *    them, and dead reckoning simply carries on uncorrected.
- *
- * A null result costs nothing (the engine keeps its current estimate); a wrong
- * snap teleports the visitor's narration to the wrong room. The thresholds are
- * therefore biased hard toward rejection.
+ * Raw ranked similarities of a sample against a set of references
+ * (incompatible band configurations are silently skipped, never compared).
+ * Exposed separately from the gates so the engine's audit log can record
+ * scores even when the gates reject — a field test needs to see the
+ * near-misses, not just the acceptances.
+ */
+export function scoreFingerprints(
+  sample: AcousticFingerprint,
+  references: readonly { zoneId: string; fingerprint: AcousticFingerprint }[],
+): FingerprintScore[] {
+  return references
+    .filter((r) => compatible(sample, r.fingerprint))
+    .map((r) => ({ zoneId: r.zoneId, similarity: cosineSimilarity(sample.energies, r.fingerprint.energies) }))
+    .sort((a, b) => b.similarity - a.similarity);
+}
+
+/**
+ * Apply the two similarity gates to ranked scores. Returns null —
+ * deliberately, and often — unless BOTH pass:
+ *  - confidence gate: best similarity >= minConfidence. A sample resembling
+ *    no candidate room produces mid/low similarity across the board and is
+ *    rejected (no false-positive snap).
+ *  - margin gate: best must beat the runner-up by >= minMargin. Two
+ *    acoustically similar rooms (e.g. two quiet galleries on the same HVAC
+ *    loop) both score high — this gate refuses to guess between them, and
+ *    dead reckoning simply carries on uncorrected. A missed correction is
+ *    always preferable to a wrong one.
+ */
+export function gateScores(
+  scored: readonly FingerprintScore[],
+  cfg?: Partial<AcousticMatchConfig>,
+): AcousticMatch | null {
+  const { minConfidence, minMargin } = { ...DEFAULT_ACOUSTIC_MATCH_CONFIG, ...cfg };
+  const best = scored[0];
+  if (!best) return null;
+  if (best.similarity < minConfidence) return null;
+  const margin = scored.length > 1 ? best.similarity - scored[1]!.similarity : best.similarity;
+  if (scored.length > 1 && margin < minMargin) return null;
+  return { zoneId: best.zoneId, confidence: best.similarity, margin };
+}
+
+/**
+ * Score + gate in one call. NOTE: the caller decides which references are
+ * geometrically plausible — the PositionEngine passes only zones near its
+ * current estimate, never the full blueprint, and additionally requires
+ * consecutive agreeing samples before acting (see handleAcousticSample).
  */
 export function matchFingerprint(
   sample: AcousticFingerprint,
   references: readonly { zoneId: string; fingerprint: AcousticFingerprint }[],
   cfg?: Partial<AcousticMatchConfig>,
 ): AcousticMatch | null {
-  const { minConfidence, minMargin } = { ...DEFAULT_ACOUSTIC_MATCH_CONFIG, ...cfg };
-  const usable = references.filter((r) => compatible(sample, r.fingerprint));
-  if (usable.length === 0) return null;
-
-  const scored = usable
-    .map((r) => ({ zoneId: r.zoneId, sim: cosineSimilarity(sample.energies, r.fingerprint.energies) }))
-    .sort((a, b) => b.sim - a.sim);
-
-  const best = scored[0]!;
-  if (best.sim < minConfidence) return null;
-  const margin = scored.length > 1 ? best.sim - scored[1]!.sim : best.sim;
-  if (scored.length > 1 && margin < minMargin) return null;
-
-  return { zoneId: best.zoneId, confidence: best.sim, margin };
+  return gateScores(scoreFingerprints(sample, references), cfg);
 }

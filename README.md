@@ -25,7 +25,7 @@ remains is in [HANDOFF.md](./HANDOFF.md).
 - **Done (Phase A):** position engine (step detection, dead reckoning,
   map matching, geofencing, acoustic fingerprinting, wake-lock manager,
   audio director), floor-blueprint schema + validator, venue server,
-  47-test proof suite.
+  51-test proof suite.
 - **Next (Phase C):** admin calibration UI, tourist-facing dark UI,
   audio content management. See HANDOFF.md.
 
@@ -33,7 +33,7 @@ remains is in [HANDOFF.md](./HANDOFF.md).
 
 ```bash
 npm install
-npm test          # the position-engine proof suite (47 tests)
+npm test          # the position-engine proof suite (51 tests)
 npm run typecheck
 npm run server    # serves venues/ on :4000 (GET /venues/demo/blueprint.json)
 ```

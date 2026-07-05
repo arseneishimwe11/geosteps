@@ -20,10 +20,13 @@ export { GeofenceEngine, DEFAULT_GEOFENCE_CONFIG } from './geofence';
 export {
   computeFingerprint,
   matchFingerprint,
+  scoreFingerprints,
+  gateScores,
   cosineSimilarity,
   DEFAULT_ACOUSTIC_MATCH_CONFIG,
   DEFAULT_FINGERPRINT_OPTIONS,
   type FingerprintOptions,
+  type FingerprintScore,
 } from './acoustic/fingerprint';
 export { PositionEngine, type PositionEngineConfig } from './positionEngine';
 export {

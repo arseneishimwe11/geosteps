@@ -107,11 +107,28 @@ export interface GeofenceConfig {
   hysteresisM: number;
 }
 
+/**
+ * Configuration of the acoustic correction layer. The acoustic layer is a
+ * CORRECTOR of dead reckoning, never an independent locator — the last four
+ * fields enforce that: it may only choose among geometrically plausible
+ * zones, and it may only act after several consecutive samples agree.
+ */
 export interface AcousticMatchConfig {
   /** Minimum cosine similarity against the best reference to accept a match. */
   minConfidence: number;
-  /** Best similarity must beat the second best by at least this much (when >1 reference). */
+  /**
+   * Best similarity must beat the second best by at least this much (when >1
+   * candidate). Two candidates within this margin ⇒ no correction at all —
+   * a missed correction is always preferable to a wrong one.
+   */
   minMargin: number;
+  /** Geometric gate: candidate radius = base + factor × current uncertainty (m). */
+  candidateBaseRadiusM: number;
+  candidateUncertaintyFactor: number;
+  /** Temporal gate: consecutive agreeing samples required before ANY correction. */
+  consecutiveAgreements: number;
+  /** Samples further apart than this don't count as consecutive (streak resets). */
+  maxStreakGapMs: number;
 }
 
 export interface BlueprintCalibration {
@@ -195,4 +212,32 @@ export interface AcousticMatch {
   confidence: number;
   /** confidence minus the runner-up's similarity (== confidence when only one reference). */
   margin: number;
+}
+
+/** What the engine did with one acoustic sample. */
+export type AcousticAction =
+  | 'none' // no gated match (unknown sound, ambiguous twins, or empty candidate set)
+  | 'streak-building' // confident match, but not enough consecutive agreement yet
+  | 'confirmed-in-place' // streak complete, matched zone already contains the estimate
+  | 'reanchored'; // streak complete, estimate moved to the matched zone
+
+/**
+ * Field-observability record emitted for EVERY acoustic sample, applied or
+ * not. Unit tests against synthetic fixtures can't tell you how often this
+ * layer fires in a real building — a pilot deployment logging these can.
+ */
+export interface AcousticSampleAudit {
+  timestampMs: number;
+  /** Geometric candidate set actually considered (never the full blueprint). */
+  candidateZoneIds: string[];
+  candidateRadiusM: number;
+  /** Gated match within the candidate set, if any. */
+  match: AcousticMatch | null;
+  /** Similarity gap between the top two candidates (null when fewer than 2 scored). */
+  marginToRunnerUp: number | null;
+  /** Consecutive agreeing samples including this one (0 when no gated match). */
+  streak: number;
+  action: AcousticAction;
+  positionBefore: Point;
+  positionAfter: Point;
 }

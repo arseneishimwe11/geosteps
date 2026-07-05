@@ -138,7 +138,11 @@
     },
     "acoustic": {
       "minConfidence": 0.9,
-      "minMargin": 0.08
+      "minMargin": 0.08,
+      "candidateBaseRadiusM": 6,
+      "candidateUncertaintyFactor": 2,
+      "consecutiveAgreements": 3,
+      "maxStreakGapMs": 60000
     }
   }
 }

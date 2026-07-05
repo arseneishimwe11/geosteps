@@ -19,7 +19,7 @@ contract. Read ARCHITECTURE.md first for *why* everything is the way it is.
 | `zones[].audio` | `{ [lang]: { url, durationSec?, title? } }` | Per-zone, per-language narration. |
 | `zones[].fingerprint` | `AcousticFingerprint?` | `band-energy-v1`: 16 log bands [100, 7200] Hz, energies sum to 1. Versioned for future methods (e.g. impulse/RT60). |
 | `graph` | `{ nodes[], edges[] }` | Edges have `widthM`; walkable space = union of edge capsules; everything else is wall. |
-| `calibration` | `{ headingOffsetDeg, defaultStrideM, stepDetector?, geofence?, acoustic? }` | `headingOffsetDeg` = compass bearing of map +Y. |
+| `calibration` | `{ headingOffsetDeg, defaultStrideM, stepDetector?, geofence?, acoustic? }` | `headingOffsetDeg` = compass bearing of map +Y. `acoustic` includes the corrector gates: `minConfidence`, `minMargin`, `candidateBaseRadiusM`, `candidateUncertaintyFactor`, `consecutiveAgreements`, `maxStreakGapMs`. |
 
 Validation: `validateBlueprint(json)` returns `{ ok, errors[], warnings[] }` —
 complete list, not first-error. The server already refuses invalid PUTs with
@@ -36,15 +36,27 @@ const engine = new PositionEngine(blueprint, cfg?);
 // inputs (platform layer or simulation pushes; engine never polls)
 engine.handleHeading(compassDeg, tMs);          // raw compass, deg CW from north
 engine.handleMotionSample({ tMs, ax, ay, az }); // devicemotion accelerationIncludingGravity
-engine.handleAcousticSample(fingerprint, tMs);  // -> AcousticMatch | null
+engine.handleAcousticSample(fingerprint, tMs);  // -> AcousticSampleAudit (see below)
 engine.tick(tMs);                               // call ~2x/s so debounce advances while standing
 engine.stepOnce(tMs);                           // one step at current heading (simulation / manual assist)
 
 // outputs
 const unsub = engine.onPosition((state: PositionState) => { /* render */ });
 engine.onZoneEvent((ev: ZoneEvent) => director.handleZoneEvent(ev));
+engine.onAcousticAudit((a: AcousticSampleAudit) => { /* field-test logging only */ });
 engine.getState(); // PositionState snapshot
 ```
+
+The acoustic layer is a **corrector, never an independent locator** — four
+mandatory gates (geometric candidate set around the current estimate,
+confidence, margin, and a consecutive-agreement streak; ARCHITECTURE.md §7).
+`handleAcousticSample` therefore usually does nothing, and that is correct
+behavior. It returns (and emits to `onAcousticAudit`) an `AcousticSampleAudit`
+per sample: candidate set considered, top-two margin, streak, action taken
+(`none | streak-building | confirmed-in-place | reanchored`), and
+position before/after. **Pilot deployments must persist these records** —
+they are the only way to learn how often the acoustic layer actually fires in
+a real building; synthetic unit tests cannot answer that.
 
 Supporting pieces, all already implemented and tested:
 
@@ -65,10 +77,11 @@ Supporting pieces, all already implemented and tested:
 
 ## 3. Done vs. left
 
-**Done (Phase A, tested — 47 passing):** everything in §2, the schema, the
+**Done (Phase A, tested — 51 passing):** everything in §2, the schema, the
 validator, the demo venue, and the proof suite (irregular walking, injected
-compass drift vs. walls, acoustic false-positive rejection, boundary flicker,
-permission denial, wake-lock re-acquisition).
+compass drift vs. walls, acoustic false-positive rejection incl. twin-zone
+ambiguity and single-anomaly suppression, boundary flicker, permission
+denial, wake-lock re-acquisition).
 
 **Left (Phase C):**
 

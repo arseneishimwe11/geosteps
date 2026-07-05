@@ -49,7 +49,8 @@ of the architecture; do not design against them.
  │  │  HeadingSmoother ──θ──►   X += stride·sin θ, Y += stride·cos θ│  │
  │  │                              │ raw (x,y)                     │   │
  │  │  MapMatcher (walkable graph) ▼ snap-if-in-wall               │   │
- │  │  acoustic matcher ──confident room match──► re-anchor        │   │
+ │  │  acoustic corrector ──4 gates: geometry, confidence,         │   │
+ │  │                        margin, consecutive agreement──► snap │   │
  │  │                              │ corrected (x,y)               │   │
  │  │  GeofenceEngine (hysteresis + debounce)                      │   │
  │  └──────────┬──────────────────────────────┬────────────────────┘   │
@@ -116,7 +117,9 @@ complete error list).
     "headingOffsetDeg": 17,                      // compass bearing of map +Y
     "defaultStrideM": 0.7,
     "geofence":  { "enterDebounceMs": 1500, "exitDebounceMs": 2500, "hysteresisM": 0.5 },
-    "acoustic":  { "minConfidence": 0.9, "minMargin": 0.08 }
+    "acoustic":  { "minConfidence": 0.9, "minMargin": 0.08,
+                   "candidateBaseRadiusM": 6, "candidateUncertaintyFactor": 2,
+                   "consecutiveAgreements": 3, "maxStreakGapMs": 60000 }
   }
 }
 ```
@@ -229,31 +232,56 @@ to hash, so we characterize the steady texture instead. Echo cancellation /
 noise suppression / AGC are explicitly disabled at capture, because those DSP
 stages are built to remove exactly the signal we want.
 
-**Matching.** Cosine similarity between the runtime distribution and each
-stored zone distribution, with **two gates**, both of which must pass:
+**The acoustic layer is a corrector, never an independent locator.** Dead
+reckoning + map matching remain the position authority at all times; acoustic
+evidence may only *adjust* their estimate, and only after clearing **four
+gates, all mandatory, in order** (`PositionEngine.handleAcousticSample`):
 
-1. **Confidence gate:** best similarity ≥ `minConfidence` (default **0.90**).
+1. **Geometric gate.** The sample is compared only against zones within
+   `candidateBaseRadiusM + candidateUncertaintyFactor × uncertainty` of the
+   current estimate (defaults: 6 m + 2×, so ≈ 8 m when freshly anchored,
+   ≈ 16 m after heavy drift) — **never the full floor blueprint**. A sound
+   resembling a room the visitor cannot plausibly have reached is not
+   evidence, it's a coincidence — and this gate is what makes acoustically
+   identical rooms on opposite sides of the building a non-problem: the
+   distant twin is simply never in the candidate set.
+2. **Confidence gate:** best similarity ≥ `minConfidence` (default **0.90**).
    The default is 0.90 and not lower for a measured reason: cosine similarity
    between band-energy distributions is permissive for broadband sounds — a
    white-noise-like sample (crowd murmur, rain) scores ≈ 0.86 against a
    high-band-weighted reference despite being a different signal. 0.90 sits
    above that failure mode; genuine same-room samples land at 0.95+. There is
    a test pinning this exact scenario.
-2. **Margin gate:** best must beat second-best by ≥ `minMargin` (default
-   0.08). Two galleries on the same HVAC loop sound alike; both will score
-   high, and the matcher **refuses to guess** between them.
+3. **Margin gate:** best must beat second-best by ≥ `minMargin` (default
+   0.08). Two neighboring galleries on the same HVAC loop sound alike; both
+   will score high, and the matcher **applies no correction at all** rather
+   than guess — dead reckoning stays in charge. A missed correction is always
+   preferable to a wrong one.
+4. **Temporal-consistency gate:** `consecutiveAgreements` successive samples
+   (default 3, each within `maxStreakGapMs` = 60 s of the previous) must name
+   the **same** zone before anything changes. **A single sample never moves
+   the reported position** — not even to tighten uncertainty. One anomalous
+   reading (a tour group walks past, a door slams) is noise; the same reading
+   three times in a row is a room.
 
-On no match: nothing happens — dead reckoning carries on. A null result costs
-nothing; a wrong snap teleports the narration to the wrong room. The
-thresholds are therefore biased hard toward rejection.
-
-**Re-anchoring policy (`PositionEngine.handleAcousticSample`).** On a
-confident match for a zone the engine already believes it's in → tighten
-uncertainty only (confirmation). For a *different* zone → move the estimate to
+**Correction policy once all four gates pass.** If the matched zone already
+contains the estimate → tighten uncertainty in place (confirmation, no move).
+If it's a different (but geometrically plausible) zone → move the estimate to
 that zone's centroid, map-matched onto the graph, and set uncertainty to the
 snap radius (3 m — *room-level, on purpose*). The geofence then enters the
 zone through its normal debounced path; acoustic evidence gets no shortcut
-around the debounce.
+around the debounce. On anything less than four passed gates: nothing happens
+— a null result costs nothing, while a wrong snap teleports the narration to
+the wrong room. Every threshold is therefore biased hard toward rejection.
+
+**Field observability.** Every sample — acted on or not — produces an
+`AcousticSampleAudit` record (subscribe via `engine.onAcousticAudit`): the
+geometric candidate set considered, the margin between the top two
+candidates, the streak length, and whether/what correction was applied.
+Synthetic unit tests cannot tell you how often this layer fires in a real
+building with real HVAC and real crowds; a pilot deployment logging these
+records can, and the thresholds above should be re-tuned from that data. Not
+a tourist-facing feature.
 
 **Honest limitations — read before trusting this:**
 
@@ -263,9 +291,15 @@ around the debounce.
   adds babble; a calibration done in an empty museum degrades on a busy day.
   The gates mean degradation shows up as *fewer corrections*, not wrong ones —
   the system falls back to pure dead reckoning + map matching.
-- **Acoustically identical rooms are indistinguishable** (that's what the
-  margin gate encodes). Venues with N identical silent rooms get acoustic help
-  only in the rooms that differ.
+- **Acoustically identical *neighboring* rooms are indistinguishable** (that's
+  what the margin gate encodes — it never picks between near-twins in the
+  same candidate set). Identical rooms *far apart* are handled by the
+  geometric gate instead. Venues with N identical adjacent silent rooms get
+  acoustic help only in the rooms that differ.
+- **Corrections are slow by design.** Three agreeing samples at a ~15 s
+  cadence means the fastest possible acoustic correction takes ~45 s in the
+  same room. That is the right trade: this layer exists to fix *accumulated*
+  drift, and museum dwell times are minutes.
 - Recalibrate when the soundscape changes (new AC unit, new fountain, winter
   vs. summer ventilation). Calibration is an 8-second recording per room —
   cheap to redo.
@@ -348,14 +382,17 @@ shouldn't be buffered whole into WebAudio memory.
 
 ## 12. What the test suite proves (`tests/`)
 
-47 assertions-with-teeth across 9 files, all runnable with `npm test`:
+51 assertions-with-teeth across 9 files, all runnable with `npm test`:
 
 | Scenario (required by spec) | Test file | What is asserted |
 |---|---|---|
 | Irregular walk: zig-zag, backtrack, skip zone C, re-enter zone A | `irregularWalk.test.ts` | Exact event sequence `A, B, D, A-again` from coordinates alone; C never fires; 136 steps land inside A. |
 | Injected 25° compass bias would dead-reckon through a wall | `mapMatching.test.ts` | Raw endpoint is provably non-walkable; every engine-reported position stays walkable; snap events occurred; final position hand-computed. |
-| Acoustic: noisy re-sample of a known room matches it | `acoustic.test.ts` | Match with confidence > 0.9 and margin > 0.08; engine re-anchors to zone centroid, uncertainty set to 3 m, zone entered via normal debounce. |
-| Acoustic: sample resembling nothing stored is rejected | `acoustic.test.ts` | White noise → `null` (incl. the ≈0.86-vs-high-band trap); near-twin rooms → `null` via margin gate; incompatible band configs never compared. |
+| Acoustic: noisy re-sample of a known room matches it | `acoustic.test.ts` | Match with confidence > 0.9 and margin > 0.08; after three consecutive agreeing samples the engine re-anchors to the zone centroid, uncertainty set to 3 m, zone entered via normal debounce. |
+| Acoustic: sample resembling nothing stored is rejected | `acoustic.test.ts` | White noise → `null` (incl. the ≈0.86-vs-high-band trap); incompatible band configs never compared. |
+| Acoustic: near-identical twin zones in range → no correction | `acoustic.test.ts` | Two fixture zones given deliberately near-identical fingerprints; five samples in a row apply zero corrections (margin gate), audit records show the sub-margin ambiguity. |
+| Acoustic: single anomalous sample never moves position | `acoustic.test.ts` | One zone-C-flavored sample mid-corridor changes nothing (not even uncertainty); the same reading repeated 3× consecutively does re-anchor; a conflicting sample or a >60 s gap resets the streak. |
+| Acoustic: geometric gate excludes implausible rooms | `acoustic.test.ts` | A far-away zone with an *identical* fingerprint never appears in the audited candidate set; the plausible local zone confirms in place instead of deadlocking on the twin. |
 | Boundary flicker | `boundaryFlicker.test.ts` | 20+ oscillations across a zone edge (and across a *shared* edge of two zones): one `enter`, zero `exit`s, exactly one audio track created; genuine departures/switches still work. |
 | Permission denied / API missing | `permissions.test.ts` | Rejected `requestPermission()`, denied prompts, absent APIs — every path yields a structured status **plus a non-empty honest message**; nothing throws, nothing is silent. |
 | Wake Lock re-acquisition | `wakeLock.test.ts` | Hidden→visible round trip re-requests the lock exactly once and reports `active → released → active`. |
