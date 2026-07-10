@@ -3,11 +3,19 @@
   "venue": {
     "id": "demo",
     "name": "Demo Regional Museum",
-    "languages": ["en", "fr", "rw", "sw"],
+    "languages": [
+      "en",
+      "fr",
+      "rw",
+      "sw"
+    ],
     "defaultLanguage": "en"
   },
   "entry": {
-    "position": { "x": 5, "y": 5 },
+    "position": {
+      "x": 5,
+      "y": 5
+    },
     "note": "QR code stand just inside the main door, facing the ticket desk."
   },
   "zones": [
@@ -15,16 +23,44 @@
       "id": "entrance-hall",
       "name": "Entrance Hall",
       "polygon": [
-        { "x": 2, "y": 8 },
-        { "x": 8, "y": 8 },
-        { "x": 8, "y": 14 },
-        { "x": 2, "y": 14 }
+        {
+          "x": 2,
+          "y": 8
+        },
+        {
+          "x": 8,
+          "y": 8
+        },
+        {
+          "x": 8,
+          "y": 14
+        },
+        {
+          "x": 2,
+          "y": 14
+        }
       ],
       "audio": {
-        "en": { "url": "audio/entrance-hall.en.mp3", "title": "Welcome" },
-        "fr": { "url": "audio/entrance-hall.fr.mp3", "title": "Bienvenue" },
-        "rw": { "url": "audio/entrance-hall.rw.mp3", "title": "Murakaza neza" },
-        "sw": { "url": "audio/entrance-hall.sw.mp3", "title": "Karibu" }
+        "en": {
+          "url": "audio/entrance-hall.en.wav",
+          "title": "Placeholder tone — not narration",
+          "durationSec": 2
+        },
+        "fr": {
+          "url": "audio/entrance-hall.fr.wav",
+          "title": "Placeholder tone — not narration",
+          "durationSec": 2
+        },
+        "rw": {
+          "url": "audio/entrance-hall.rw.wav",
+          "title": "Placeholder tone — not narration",
+          "durationSec": 2
+        },
+        "sw": {
+          "url": "audio/entrance-hall.sw.wav",
+          "title": "Placeholder tone — not narration",
+          "durationSec": 2
+        }
       },
       "fingerprint": {
         "version": 1,
@@ -32,8 +68,28 @@
         "sampleRateHz": 48000,
         "fftSize": 2048,
         "bandCount": 16,
-        "bandsHz": [100, 7200],
-        "energies": [0.22, 0.2, 0.16, 0.12, 0.08, 0.05, 0.04, 0.03, 0.02, 0.02, 0.015, 0.012, 0.01, 0.008, 0.006, 0.009],
+        "bandsHz": [
+          100,
+          7200
+        ],
+        "energies": [
+          0.22,
+          0.2,
+          0.16,
+          0.12,
+          0.08,
+          0.05,
+          0.04,
+          0.03,
+          0.02,
+          0.02,
+          0.015,
+          0.012,
+          0.01,
+          0.008,
+          0.006,
+          0.009
+        ],
         "capturedAt": "2026-07-01T08:10:00Z",
         "captureSeconds": 8
       }
@@ -42,16 +98,44 @@
       "id": "royal-drums",
       "name": "Royal Drum Gallery",
       "polygon": [
-        { "x": 12, "y": 8 },
-        { "x": 18, "y": 8 },
-        { "x": 18, "y": 14 },
-        { "x": 12, "y": 14 }
+        {
+          "x": 12,
+          "y": 8
+        },
+        {
+          "x": 18,
+          "y": 8
+        },
+        {
+          "x": 18,
+          "y": 14
+        },
+        {
+          "x": 12,
+          "y": 14
+        }
       ],
       "audio": {
-        "en": { "url": "audio/royal-drums.en.mp3", "title": "The Royal Drums" },
-        "fr": { "url": "audio/royal-drums.fr.mp3", "title": "Les tambours royaux" },
-        "rw": { "url": "audio/royal-drums.rw.mp3", "title": "Ingoma z'ubwami" },
-        "sw": { "url": "audio/royal-drums.sw.mp3", "title": "Ngoma za kifalme" }
+        "en": {
+          "url": "audio/royal-drums.en.wav",
+          "title": "Placeholder tone — not narration",
+          "durationSec": 2
+        },
+        "fr": {
+          "url": "audio/royal-drums.fr.wav",
+          "title": "Placeholder tone — not narration",
+          "durationSec": 2
+        },
+        "rw": {
+          "url": "audio/royal-drums.rw.wav",
+          "title": "Placeholder tone — not narration",
+          "durationSec": 2
+        },
+        "sw": {
+          "url": "audio/royal-drums.sw.wav",
+          "title": "Placeholder tone — not narration",
+          "durationSec": 2
+        }
       },
       "fingerprint": {
         "version": 1,
@@ -59,8 +143,28 @@
         "sampleRateHz": 48000,
         "fftSize": 2048,
         "bandCount": 16,
-        "bandsHz": [100, 7200],
-        "energies": [0.05, 0.06, 0.08, 0.12, 0.16, 0.18, 0.14, 0.08, 0.04, 0.03, 0.02, 0.015, 0.01, 0.008, 0.005, 0.002],
+        "bandsHz": [
+          100,
+          7200
+        ],
+        "energies": [
+          0.05,
+          0.06,
+          0.08,
+          0.12,
+          0.16,
+          0.18,
+          0.14,
+          0.08,
+          0.04,
+          0.03,
+          0.02,
+          0.015,
+          0.01,
+          0.008,
+          0.005,
+          0.002
+        ],
         "capturedAt": "2026-07-01T08:25:00Z",
         "captureSeconds": 8
       }
@@ -69,16 +173,44 @@
       "id": "kingdom-history",
       "name": "Kingdom History Room",
       "polygon": [
-        { "x": 22, "y": 8 },
-        { "x": 28, "y": 8 },
-        { "x": 28, "y": 14 },
-        { "x": 22, "y": 14 }
+        {
+          "x": 22,
+          "y": 8
+        },
+        {
+          "x": 28,
+          "y": 8
+        },
+        {
+          "x": 28,
+          "y": 14
+        },
+        {
+          "x": 22,
+          "y": 14
+        }
       ],
       "audio": {
-        "en": { "url": "audio/kingdom-history.en.mp3", "title": "The Kingdom Era" },
-        "fr": { "url": "audio/kingdom-history.fr.mp3", "title": "L'époque royale" },
-        "rw": { "url": "audio/kingdom-history.rw.mp3", "title": "Igihe cy'ubwami" },
-        "sw": { "url": "audio/kingdom-history.sw.mp3", "title": "Enzi ya ufalme" }
+        "en": {
+          "url": "audio/kingdom-history.en.wav",
+          "title": "Placeholder tone — not narration",
+          "durationSec": 2
+        },
+        "fr": {
+          "url": "audio/kingdom-history.fr.wav",
+          "title": "Placeholder tone — not narration",
+          "durationSec": 2
+        },
+        "rw": {
+          "url": "audio/kingdom-history.rw.wav",
+          "title": "Placeholder tone — not narration",
+          "durationSec": 2
+        },
+        "sw": {
+          "url": "audio/kingdom-history.sw.wav",
+          "title": "Placeholder tone — not narration",
+          "durationSec": 2
+        }
       },
       "fingerprint": {
         "version": 1,
@@ -86,8 +218,28 @@
         "sampleRateHz": 48000,
         "fftSize": 2048,
         "bandCount": 16,
-        "bandsHz": [100, 7200],
-        "energies": [0.03, 0.03, 0.04, 0.05, 0.06, 0.07, 0.09, 0.12, 0.15, 0.14, 0.1, 0.06, 0.03, 0.015, 0.01, 0.005],
+        "bandsHz": [
+          100,
+          7200
+        ],
+        "energies": [
+          0.03,
+          0.03,
+          0.04,
+          0.05,
+          0.06,
+          0.07,
+          0.09,
+          0.12,
+          0.15,
+          0.14,
+          0.1,
+          0.06,
+          0.03,
+          0.015,
+          0.01,
+          0.005
+        ],
         "capturedAt": "2026-07-01T08:40:00Z",
         "captureSeconds": 8
       }
@@ -96,36 +248,116 @@
       "id": "contemporary-wing",
       "name": "Contemporary Art Wing",
       "polygon": [
-        { "x": 32, "y": 8 },
-        { "x": 38, "y": 8 },
-        { "x": 38, "y": 14 },
-        { "x": 32, "y": 14 }
+        {
+          "x": 32,
+          "y": 8
+        },
+        {
+          "x": 38,
+          "y": 8
+        },
+        {
+          "x": 38,
+          "y": 14
+        },
+        {
+          "x": 32,
+          "y": 14
+        }
       ],
       "audio": {
-        "en": { "url": "audio/contemporary-wing.en.mp3", "title": "Contemporary Voices" },
-        "fr": { "url": "audio/contemporary-wing.fr.mp3", "title": "Voix contemporaines" },
-        "rw": { "url": "audio/contemporary-wing.rw.mp3", "title": "Ubuhanzi bwa none" },
-        "sw": { "url": "audio/contemporary-wing.sw.mp3", "title": "Sanaa ya kisasa" }
+        "en": {
+          "url": "audio/contemporary-wing.en.wav",
+          "title": "Placeholder tone — not narration",
+          "durationSec": 2
+        },
+        "fr": {
+          "url": "audio/contemporary-wing.fr.wav",
+          "title": "Placeholder tone — not narration",
+          "durationSec": 2
+        },
+        "rw": {
+          "url": "audio/contemporary-wing.rw.wav",
+          "title": "Placeholder tone — not narration",
+          "durationSec": 2
+        },
+        "sw": {
+          "url": "audio/contemporary-wing.sw.wav",
+          "title": "Placeholder tone — not narration",
+          "durationSec": 2
+        }
       }
     }
   ],
   "graph": {
     "nodes": [
-      { "id": "spine-w", "x": 5, "y": 5 },
-      { "id": "spine-e", "x": 35, "y": 5 },
-      { "id": "hall", "x": 5, "y": 11 },
-      { "id": "drums", "x": 15, "y": 11 },
-      { "id": "spine-drums", "x": 15, "y": 5 },
-      { "id": "history", "x": 25, "y": 11 },
-      { "id": "spine-history", "x": 25, "y": 5 },
-      { "id": "contemporary", "x": 35, "y": 11 }
+      {
+        "id": "spine-w",
+        "x": 5,
+        "y": 5
+      },
+      {
+        "id": "spine-e",
+        "x": 35,
+        "y": 5
+      },
+      {
+        "id": "hall",
+        "x": 5,
+        "y": 11
+      },
+      {
+        "id": "drums",
+        "x": 15,
+        "y": 11
+      },
+      {
+        "id": "spine-drums",
+        "x": 15,
+        "y": 5
+      },
+      {
+        "id": "history",
+        "x": 25,
+        "y": 11
+      },
+      {
+        "id": "spine-history",
+        "x": 25,
+        "y": 5
+      },
+      {
+        "id": "contemporary",
+        "x": 35,
+        "y": 11
+      }
     ],
     "edges": [
-      { "from": "spine-w", "to": "spine-e", "widthM": 4 },
-      { "from": "spine-w", "to": "hall", "widthM": 4 },
-      { "from": "spine-drums", "to": "drums", "widthM": 4 },
-      { "from": "spine-history", "to": "history", "widthM": 4 },
-      { "from": "spine-e", "to": "contemporary", "widthM": 4 }
+      {
+        "from": "spine-w",
+        "to": "spine-e",
+        "widthM": 4
+      },
+      {
+        "from": "spine-w",
+        "to": "hall",
+        "widthM": 4
+      },
+      {
+        "from": "spine-drums",
+        "to": "drums",
+        "widthM": 4
+      },
+      {
+        "from": "spine-history",
+        "to": "history",
+        "widthM": 4
+      },
+      {
+        "from": "spine-e",
+        "to": "contemporary",
+        "widthM": 4
+      }
     ]
   },
   "calibration": {
