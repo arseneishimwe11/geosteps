@@ -2,8 +2,9 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { validateBlueprint } from '../../engine/blueprint';
-import type { FloorBlueprint, Zone } from '../../engine/types';
+import type { FloorBlueprint, WalkableGraph, Zone } from '../../engine/types';
 import { fetchBlueprint, saveBlueprint, VenueApiError } from '../api';
+import { CanvasPanel } from './canvas/CanvasPanel';
 import { ValidationPanel } from './ValidationPanel';
 import { ZoneCard } from './ZoneCard';
 
@@ -37,6 +38,12 @@ export function AdminApp({ venueId }: { venueId: string }) {
         ? { ...bp, zones: bp.zones.map((z) => (z.id === zoneId ? { ...z, ...patch } : z)) }
         : bp,
     );
+    setDirty(true);
+    setSaveResult(null);
+  };
+
+  const updateGeometry = (zones: Zone[], graph: WalkableGraph) => {
+    setBlueprint((bp) => (bp ? { ...bp, zones, graph } : bp));
     setDirty(true);
     setSaveResult(null);
   };
@@ -82,7 +89,10 @@ export function AdminApp({ venueId }: { venueId: string }) {
   }
 
   return (
-    <main className="mx-auto min-h-dvh max-w-3xl px-6 py-10" style={{ background: 'var(--color-slate-deep)' }}>
+    <main
+      className="mx-auto min-h-dvh max-w-[1500px] px-4 py-8 sm:px-6 lg:px-8"
+      style={{ background: 'var(--color-slate-deep)' }}
+    >
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="mb-1 text-xs uppercase tracking-[0.3em] text-brass">Admin calibration</p>
@@ -124,27 +134,34 @@ export function AdminApp({ venueId }: { venueId: string }) {
 
       {validation && <ValidationPanel validation={validation} />}
 
-      <section className="mt-6 rounded-2xl border border-dashed border-hairline bg-panel/50 px-5 py-4">
-        <h2 className="font-display text-lg text-stone">Floor plan & walkable graph editor</h2>
-        <p className="mt-1 text-sm leading-relaxed text-stone/80">
-          Arrives in the next iteration: draw zone polygons over an uploaded floor-plan image and
-          trace the walkable graph on the same canvas. Until then, geometry comes from the saved
-          blueprint below — shown read-only on each zone card.
-        </p>
-      </section>
+      <div className="mt-6 gap-6 lg:grid lg:grid-cols-[minmax(0,7fr)_minmax(380px,5fr)] lg:items-start">
+        {/* Drawing canvas — sticky beside the zone list on wide screens,
+            stacked above it on phones. */}
+        <section className="lg:sticky lg:top-6">
+          <div className="h-[62vh] min-h-[440px] lg:h-[calc(100dvh-140px)]">
+            <CanvasPanel blueprint={blueprint} onGeometryChange={updateGeometry} />
+          </div>
+        </section>
 
-      <section className="mt-8 space-y-6">
-        {blueprint.zones.map((zone, index) => (
-          <ZoneCard
-            key={zone.id}
-            venueId={venueId}
-            blueprint={blueprint}
-            zone={zone}
-            zoneIndex={index}
-            onUpdate={(patch) => updateZone(zone.id, patch)}
-          />
-        ))}
-      </section>
+        <section className="mt-8 space-y-6 lg:mt-0">
+          {blueprint.zones.length === 0 && (
+            <p className="rounded-2xl border border-dashed border-hairline bg-panel/50 px-5 py-6 text-sm text-stone">
+              No zones yet — pick the <strong>Zone</strong> tool and trace the first exhibit area
+              on the canvas.
+            </p>
+          )}
+          {blueprint.zones.map((zone, index) => (
+            <ZoneCard
+              key={zone.id}
+              venueId={venueId}
+              blueprint={blueprint}
+              zone={zone}
+              zoneIndex={index}
+              onUpdate={(patch) => updateZone(zone.id, patch)}
+            />
+          ))}
+        </section>
+      </div>
     </main>
   );
 }

@@ -95,15 +95,27 @@ validation-gated save, unauthenticated-write banner); venue server
 acoustic-audit observability (`/dev/audits`, localStorage ring + JSON
 export); scripted browser proof (`scripts/e2e-demo.ts`).
 
+**Done (Phase C, run 2 — the drawing canvas):** `/admin/[venue]` now has the
+full floor-plan editor (`src/ui/admin/canvas/`): floor-plan image backdrop
+(client-side only — the frozen schema carries no image; it's a tracing aid
+persisted in localStorage), two-click scale calibration against a known
+distance, zone-polygon drawing (close → name → full zone card with recorder
+and narration slots), walkable-graph tracing (chains from existing nodes,
+capsule preview at real edge width, duplicate/self-edge refusal), select/
+move/delete with vertex and node handles, undo/redo that merges back
+audio/fingerprint work, 0.5 m grid + node snapping, pan/wheel/pinch zoom,
+keyboard shortcuts, desktop two-pane + mobile stacked layouts. Geometry ops
+are pure and unit-tested (`editorOps.ts`); the e2e script draws and traces
+through the real UI and asserts the saved blueprint's exact coordinates.
+
 **Left:**
 
-1. **Admin floor-plan canvas** (next run, max effort): draw/edit zone
-   polygons over an uploaded floor-plan image; trace walkable nodes/edges on
-   the same canvas producing the frozen graph schema; measure
-   `headingOffsetDeg` (stand on a marked line, read the compass).
-2. **Auth on all server write routes** — blueprint and audio PUTs are
+1. **Auth on all server write routes** — blueprint and audio PUTs are
    deliberately unauthenticated; the admin UI banners this. Must land before
    any non-local deployment.
+2. **`headingOffsetDeg` measurement flow** — the calibration screen should
+   measure the compass bearing of map +Y on-site (stand on a marked line,
+   read the device compass) rather than have staff type a number.
 3. **Real narration content** to replace the labeled placeholder tones.
 4. **Stride personalization** (optional): calibrate `strideM` from the known
    entrance-corridor length.

@@ -11,9 +11,9 @@
  * Prereqs: `npm run server` (:4000) and `npm run dev` (:3000) running,
  * demo venue seeded with placeholder tones.
  */
-import { mkdir } from 'node:fs/promises';
+import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { chromium, type BrowserContext, type Page } from 'playwright';
+import { chromium, type Page } from 'playwright';
 
 const OUT = process.argv[2] ?? 'e2e-shots';
 const APP = 'http://localhost:3000';
@@ -58,8 +58,22 @@ async function clickTimes(page: Page, testId: string, times: number) {
   }
 }
 
+/** Click a map-frame world coordinate on the floor canvas (reads the live view transform). */
+async function worldClick(page: Page, wx: number, wy: number) {
+  const svg = page.locator(tid('floor-canvas'));
+  const box = (await svg.boundingBox())!;
+  const s = Number(await svg.getAttribute('data-scale'));
+  const ox = Number(await svg.getAttribute('data-ox'));
+  const oy = Number(await svg.getAttribute('data-oy'));
+  await page.mouse.click(box.x + ox + s * wx, box.y + oy - s * wy);
+  await page.waitForTimeout(140);
+}
+
 async function run() {
   await mkdir(OUT, { recursive: true });
+  // Snapshot the venue as committed; the script restores it at the end so
+  // repeated runs (and the repo) stay canonical.
+  const originalBlueprint = await (await fetch('http://localhost:4000/venues/demo/blueprint.json')).text();
   const browser = await chromium.launch({
     executablePath: '/opt/pw-browsers/chromium',
     headless: true,
@@ -191,7 +205,116 @@ async function run() {
     fail('saved blueprint does not contain the newly recorded fingerprint in the frozen format');
   }
   log('✓ server round-trip: recorded fingerprint present, frozen band-energy-v1 format');
+
+  // ------------------------------------------------ the drawing canvas
+  console.log('\n— Floor-plan drawing canvas —');
+  await expectVisible(aPage, 'floor-canvas', 'canvas renders');
+
+  // Upload a synthetic floor-plan image as the tracing backdrop.
+  const floorplanDataUrl = await aPage.evaluate(() => {
+    const c = document.createElement('canvas');
+    c.width = 800;
+    c.height = 500;
+    const g = c.getContext('2d')!;
+    g.fillStyle = '#f4efe4';
+    g.fillRect(0, 0, 800, 500);
+    g.strokeStyle = '#8a7a5c';
+    g.lineWidth = 6;
+    g.strokeRect(20, 20, 760, 460);
+    g.strokeRect(60, 60, 300, 180);
+    g.strokeRect(440, 60, 300, 180);
+    g.strokeRect(60, 300, 680, 140);
+    return c.toDataURL('image/png');
+  });
+  const tmpPng = join(OUT, 'floorplan.png');
+  await writeFile(tmpPng, Buffer.from(floorplanDataUrl.split(',')[1]!, 'base64'));
+  await aPage.locator(tid('backdrop-file')).setInputFiles(tmpPng);
+  await aPage.waitForTimeout(500);
+  if (!(await aPage.getByText('Backdrop not calibrated').isVisible())) {
+    fail('uncalibrated backdrop must show the calibration warning');
+  }
+  log('✓ backdrop uploaded; honest "not calibrated" warning shown');
+
+  // Calibrate: two picks a known 5 m apart (tool auto-selected after upload).
+  await worldClick(aPage, 5, 5);
+  await worldClick(aPage, 15, 5);
+  await expectVisible(aPage, 'calib-meters-input', 'calibration dialog opened after two picks');
+  await aPage.locator(tid('calib-meters-input')).fill('5');
+  await aPage.locator(tid('calib-confirm')).click();
+  await aPage.waitForTimeout(400);
+  if (await aPage.getByText('Backdrop not calibrated').isVisible()) {
+    fail('calibration warning should clear after applying the scale');
+  }
+  log('✓ scale calibrated (backdrop rescaled, geometry untouched)');
+
+  // Draw a new zone: four corners, close by tapping the first corner again.
+  await aPage.locator(tid('tool-draw-zone')).click();
+  await worldClick(aPage, 2, 16);
+  await worldClick(aPage, 8, 16);
+  await worldClick(aPage, 8, 22);
+  await worldClick(aPage, 2, 22);
+  await worldClick(aPage, 2, 16); // close
+  await expectVisible(aPage, 'zone-name-input', 'zone naming dialog opened on close');
+  await aPage.locator(tid('zone-name-input')).fill('Temporary Exhibit');
+  await shot(aPage, 'admin-canvas-zone-dialog');
+  await aPage.locator(tid('zone-name-confirm')).click();
+  await expectVisible(aPage, 'zone-card-temporary-exhibit', 'new zone gets a full zone card (recorder + audio slots)');
+
+  // Trace a walkable path: continue from the existing "hall" node, add two nodes.
+  await aPage.locator(tid('tool-draw-path')).click();
+  await worldClick(aPage, 5, 11); // existing node "hall" → chain anchor, no new node
+  await worldClick(aPage, 5, 19); // new node + edge hall→n9
+  await worldClick(aPage, 7, 21); // new node + edge n9→n10
+  await shot(aPage, 'admin-canvas-drawn');
+
+  // Undo removes the last node+edge; redo restores it; save proves the result.
+  await aPage.locator(tid('canvas-undo')).click();
+  await aPage.locator(tid('canvas-redo')).click();
+  const okAfterDraw = await aPage.locator(tid('validation-status')).getAttribute('data-ok');
+  if (okAfterDraw !== 'true') fail('blueprint must still validate after canvas edits');
+  await aPage.locator(tid('save-blueprint')).click();
+  await expectText(aPage, 'save-result', 'Saved', 'canvas-drawn blueprint saved');
+
+  const drawn = await (await fetch('http://localhost:4000/venues/demo/blueprint.json')).json();
+  const newZone = drawn.zones.find((z: { id: string }) => z.id === 'temporary-exhibit');
+  if (!newZone) fail('saved blueprint is missing the drawn zone');
+  if (newZone.polygon.length !== 4) fail(`drawn zone should have 4 vertices, got ${newZone.polygon.length}`);
+  if (newZone.polygon[0].x !== 2 || newZone.polygon[0].y !== 16) {
+    fail(`drawn zone vertex 0 should be (2,16) after 0.5 m snap, got (${newZone.polygon[0].x},${newZone.polygon[0].y})`);
+  }
+  const nodeIds = drawn.graph.nodes.map((n: { id: string }) => n.id);
+  if (!nodeIds.includes('n9') || !nodeIds.includes('n10')) {
+    fail(`expected traced nodes n9,n10 in the graph, got ${nodeIds.join(',')}`);
+  }
+  const hasEdge = (a: string, b: string) =>
+    drawn.graph.edges.some(
+      (e: { from: string; to: string }) => (e.from === a && e.to === b) || (e.from === b && e.to === a),
+    );
+  if (!hasEdge('hall', 'n9') || !hasEdge('n9', 'n10')) fail('traced edges missing from the saved graph');
+  log('✓ saved blueprint contains the drawn zone (snapped, 4 vertices) and the traced path (hall→n9→n10, undo/redo survived)');
   await admin.close();
+
+  // Mobile viewport: the same admin surface, stacked and touch-ready.
+  const adminMobile = await browser.newContext({ viewport: { width: 390, height: 844 } });
+  const mPage = await adminMobile.newPage();
+  trackErrors(mPage);
+  await mPage.goto(`${APP}/admin/demo`);
+  await expectVisible(mPage, 'floor-canvas', 'canvas renders at phone width');
+  await shot(mPage, 'admin-canvas-mobile');
+  await adminMobile.close();
+
+  // Desktop viewport: the tourist runtime's two-column layout.
+  const tourDesktop = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  await tourDesktop.grantPermissions(['microphone'], { origin: APP });
+  const dPage = await tourDesktop.newPage();
+  trackErrors(dPage);
+  await dPage.goto(`${APP}/tour/demo?dev=1`);
+  await dPage.locator(tid('start-guide')).click();
+  await dPage.locator(tid('sim-step-n5')).click();
+  await dPage.locator(tid('sim-step-n')).click();
+  await expectText(dPage, 'zone-name', 'Entrance Hall', 'tour works at desktop width too');
+  await shot(dPage, 'tour-desktop-two-column');
+  await tourDesktop.close();
 
   // ------------------------------------------------------------ audits page
   console.log('\n— Field-observability page —');
@@ -212,6 +335,14 @@ async function run() {
   await audCtx.close();
 
   await browser.close();
+
+  // Put the venue back exactly as committed (removes the demo's test edits).
+  const restore = await fetch('http://localhost:4000/venues/demo/blueprint.json', {
+    method: 'PUT',
+    body: originalBlueprint,
+  });
+  if (!restore.ok) fail('restoring the original demo blueprint failed');
+  log('✓ demo venue restored to its committed state');
 
   const realErrors = errors.filter(
     (e) => !e.includes('favicon') && !e.includes('Download the React DevTools'),

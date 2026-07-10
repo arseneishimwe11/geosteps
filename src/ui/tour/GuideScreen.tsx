@@ -44,7 +44,7 @@ export function GuideScreen({
   }
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md flex-col px-5 pb-8 pt-5">
+    <main className="mx-auto flex min-h-dvh max-w-md flex-col px-5 pb-8 pt-5 lg:max-w-5xl lg:px-8">
       <header className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2" data-testid="guide-active">
           <span className="relative flex h-3 w-3">
@@ -56,76 +56,83 @@ export function GuideScreen({
         <WakeLockChip state={snap.wakeLock?.state ?? null} />
       </header>
 
-      <section className="mt-10 text-center">
-        <p className="text-xs uppercase tracking-[0.3em] text-stone">
-          {currentZone ? 'You are in' : 'Between exhibits'}
-        </p>
-        <h1
-          data-testid="zone-name"
-          className="mt-2 font-display text-[2.6rem] leading-tight text-parchment"
-        >
-          {currentZone ? currentZone.name : '· · ·'}
-        </h1>
-        {snap.position && (
-          <p className="mt-2 text-xs text-stone/80">
-            position confidence ±{snap.position.uncertaintyM.toFixed(1)} m ·{' '}
-            {snap.position.stepCount} steps
-          </p>
-        )}
-      </section>
-
-      <section className="mt-8">
-        <Minimap blueprint={blueprint} position={snap.position} />
-      </section>
-
-      {snap.nowPlaying && (
-        <section
-          data-testid="now-playing"
-          className="mt-5 flex items-center gap-3 rounded-2xl border border-brass/30 bg-panel px-4 py-3"
-        >
-          <NoteIcon />
-          <div className="min-w-0">
-            <p className="truncate text-sm text-parchment">{snap.nowPlaying.zoneName}</p>
-            <p className="truncate text-xs text-brass">
-              {snap.nowPlaying.title ?? 'Narration playing'}
+      {/* One column in the hand; two calm columns on a desk. */}
+      <div className="flex grow flex-col lg:mt-6 lg:grid lg:grid-cols-[1.1fr_1fr] lg:items-start lg:gap-10">
+        <div>
+          <section className="mt-10 text-center lg:mt-0 lg:text-left">
+            <p className="text-xs uppercase tracking-[0.3em] text-stone">
+              {currentZone ? 'You are in' : 'Between exhibits'}
             </p>
-          </div>
-        </section>
-      )}
-
-      {honestyMessages.length > 0 && (
-        <section className="mt-5 space-y-2">
-          {honestyMessages.map((m) => (
-            <p
-              key={m.key}
-              data-testid={`status-${m.key}`}
-              className={
-                'rounded-xl border px-4 py-3 text-sm leading-relaxed text-parchment ' +
-                (m.tone === 'error' ? 'border-ember/40 bg-ember-deep/40' : 'border-brass/30 bg-panel')
-              }
+            <h1
+              data-testid="zone-name"
+              className="mt-2 font-display text-[2.6rem] leading-tight text-parchment lg:text-5xl"
             >
-              {m.text}
-            </p>
-          ))}
-        </section>
-      )}
+              {currentZone ? currentZone.name : '· · ·'}
+            </h1>
+            {snap.position && (
+              <p className="mt-2 text-xs text-stone/80">
+                position confidence ±{snap.position.uncertaintyM.toFixed(1)} m ·{' '}
+                {snap.position.stepCount} steps
+              </p>
+            )}
+          </section>
 
-      <section className="mt-auto pt-8">
-        <button
-          data-testid="manual-toggle"
-          onClick={() => setManualOpen((o) => !o)}
-          className="w-full rounded-xl border border-hairline px-4 py-3 text-sm text-stone transition-colors hover:border-stone"
-        >
-          {manualOpen ? 'Hide exhibit list' : 'Browse exhibits manually'}
-        </button>
-        {manualOpen && (
-          <div className="mt-3 rounded-2xl border border-hairline bg-panel p-4" data-testid="manual-list">
-            <ManualList blueprint={blueprint} venueId={session.venueId} language={snap.language} />
-          </div>
-        )}
-      </section>
+          <section className="mt-8">
+            <Minimap blueprint={blueprint} position={snap.position} />
+          </section>
+        </div>
 
-      {dev && <DevDrawer session={session} snap={snap} />}
+        <div className="flex min-w-0 grow flex-col">
+          {snap.nowPlaying && (
+            <section
+              data-testid="now-playing"
+              className="mt-5 flex items-center gap-3 rounded-2xl border border-brass/30 bg-panel px-4 py-3 lg:mt-0"
+            >
+              <NoteIcon />
+              <div className="min-w-0">
+                <p className="truncate text-sm text-parchment">{snap.nowPlaying.zoneName}</p>
+                <p className="truncate text-xs text-brass">
+                  {snap.nowPlaying.title ?? 'Narration playing'}
+                </p>
+              </div>
+            </section>
+          )}
+
+          {honestyMessages.length > 0 && (
+            <section className="mt-5 space-y-2">
+              {honestyMessages.map((m) => (
+                <p
+                  key={m.key}
+                  data-testid={`status-${m.key}`}
+                  className={
+                    'rounded-xl border px-4 py-3 text-sm leading-relaxed text-parchment ' +
+                    (m.tone === 'error' ? 'border-ember/40 bg-ember-deep/40' : 'border-brass/30 bg-panel')
+                  }
+                >
+                  {m.text}
+                </p>
+              ))}
+            </section>
+          )}
+
+          <section className="mt-auto pt-8 lg:mt-6 lg:pt-0">
+            <button
+              data-testid="manual-toggle"
+              onClick={() => setManualOpen((o) => !o)}
+              className="w-full rounded-xl border border-hairline px-4 py-3 text-sm text-stone transition-colors hover:border-stone"
+            >
+              {manualOpen ? 'Hide exhibit list' : 'Browse exhibits manually'}
+            </button>
+            {manualOpen && (
+              <div className="mt-3 rounded-2xl border border-hairline bg-panel p-4" data-testid="manual-list">
+                <ManualList blueprint={blueprint} venueId={session.venueId} language={snap.language} />
+              </div>
+            )}
+          </section>
+
+          {dev && <DevDrawer session={session} snap={snap} />}
+        </div>
+      </div>
     </main>
   );
 }

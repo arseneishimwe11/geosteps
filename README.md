@@ -26,13 +26,15 @@ remains is in [HANDOFF.md](./HANDOFF.md).
   map matching, geofencing, acoustic fingerprinting, wake-lock manager,
   audio director), floor-blueprint schema + validator, venue server,
   proof suite.
-- **Done (Phase C, run 1):** tourist runtime UI, admin calibration surface
-  (acoustic recorder + narration management + validation-gated save),
-  placeholder-audio pipeline, acoustic-audit observability, scripted
-  end-to-end browser proof.
-- **Next:** the admin floor-plan canvas (draw zone polygons, trace the
-  walkable graph), auth for the server's write routes, real narration
-  content. See HANDOFF.md.
+- **Done (Phase C):** tourist runtime UI (responsive: phone-first, desktop
+  two-column), admin calibration surface with the floor-plan drawing canvas
+  (upload a floor-plan image, calibrate its scale on a known distance, draw
+  zone polygons, trace the walkable graph — mouse and touch, undo/redo,
+  snapping), acoustic recorder, narration management with validation-gated
+  save, placeholder-audio pipeline, acoustic-audit observability, scripted
+  end-to-end browser proof at desktop and mobile viewports.
+- **Next:** auth for the server's write routes, real narration content.
+  See HANDOFF.md.
 
 ## Running the demo
 
