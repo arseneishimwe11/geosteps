@@ -1,0 +1,19 @@
+{
+  "browser": {
+    "browserName": "chromium",
+    "launchOptions": {
+      "executablePath": "/opt/pw-browsers/chromium",
+      "chromiumSandbox": false,
+      "args": [
+        "--no-sandbox",
+        "--use-fake-ui-for-media-stream",
+        "--use-fake-device-for-media-stream",
+        "--autoplay-policy=no-user-gesture-required"
+      ]
+    },
+    "contextOptions": {
+      "viewport": { "width": 390, "height": 844 },
+      "permissions": ["microphone"]
+    }
+  }
+}

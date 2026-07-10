@@ -58,7 +58,8 @@ export function Minimap({
         );
       })}
 
-      {/* zones */}
+      {/* zones — only the active one is labeled (the header names it too);
+          labeling every room at phone scale turns into overlapping noise */}
       {blueprint.zones.map((z) => {
         const active = position?.currentZoneId === z.id;
         const points = z.polygon.map((p) => `${p.x},${fy(p.y)}`).join(' ');
@@ -71,18 +72,20 @@ export function Minimap({
               fill={active ? 'color-mix(in oklab, var(--color-brass) 22%, transparent)' : 'transparent'}
               stroke={active ? 'var(--color-brass)' : 'var(--color-stone)'}
               strokeWidth={active ? 0.35 : 0.18}
-              opacity={active ? 1 : 0.7}
+              opacity={active ? 1 : 0.55}
             />
-            <text
-              x={cx}
-              y={fy(cy)}
-              textAnchor="middle"
-              fontSize={1.3}
-              fill={active ? 'var(--color-brass-bright)' : 'var(--color-stone)'}
-              style={{ fontFamily: 'var(--font-body)' }}
-            >
-              {z.name}
-            </text>
+            {active && (
+              <text
+                x={cx}
+                y={fy(cy) - 2.2}
+                textAnchor="middle"
+                fontSize={1.15}
+                fill="var(--color-brass-bright)"
+                style={{ fontFamily: 'var(--font-body)' }}
+              >
+                {z.name}
+              </text>
+            )}
           </g>
         );
       })}

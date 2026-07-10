@@ -32,7 +32,10 @@ export function simWalk(session: GuideSession, direction: SimDirection, steps = 
     (DIRECTION_TO_MAP_BEARING[direction] + session.blueprint.calibration.headingOffsetDeg) % 360;
   for (let i = 0; i < steps; i++) {
     const t = Date.now();
-    session.engine.handleHeading(compassDeg, t);
+    // A real phone streams compass readings continuously (~10 Hz), several
+    // per step — the engine's heading smoother is tuned for that. Emit a
+    // burst per simulated step so turns converge the way they do on-device.
+    for (let h = 0; h < 8; h++) session.engine.handleHeading(compassDeg, t);
     session.engine.stepOnce(t);
   }
 }

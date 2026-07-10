@@ -83,23 +83,28 @@ compass drift vs. walls, acoustic false-positive rejection incl. twin-zone
 ambiguity and single-anomaly suppression, boundary flicker, permission
 denial, wake-lock re-acquisition).
 
-**Left (Phase C):**
+**Done (Phase C, run 1):** tourist runtime UI (`/tour/[venue]`: one-tap
+start, wake-lock chip, engine-driven zone display, fuzzy-uncertainty
+minimap, verbatim honesty messages, manual fallback, `?dev=1` simulator
+drawer that injects engine inputs only); admin surface (`/admin/[venue]`:
+per-zone acoustic recorder via the same `captureAmbientClip` →
+`computeFingerprint` pipeline as the runtime, per-zone/per-language
+narration slots with upload + labeled placeholder-tone generation,
+validation-gated save, unauthenticated-write banner); venue server
+`PUT /venues/:id/audio/:file`; placeholder-tone pipeline + demo seed;
+acoustic-audit observability (`/dev/audits`, localStorage ring + JSON
+export); scripted browser proof (`scripts/e2e-demo.ts`).
 
-1. **Admin calibration UI** (walk-the-space mode): draw/edit zone polygons
-   over a floor-plan image; trace the walkable graph by walking it (or by
-   tapping node points); per-zone "record 8 s ambience" button →
-   `captureAmbientClip` + `computeFingerprint`; measure `headingOffsetDeg`
-   (stand on a marked line, read the compass); compile + PUT the blueprint.
-2. **Tourist UI**: QR landing → language picker → single "Start the guide"
-   tap (permission gate + wake lock + audio unlock all inside that one
-   gesture); dark AMOLED-friendly screen with zone name, uncertainty-honest
-   position dot on the floor plan, wake-lock/"guide active" indicator,
-   capability messages rendered verbatim; manual exhibit list as the
-   universal fallback.
-3. **Content management**: audio upload per zone/language (the server needs a
-   `PUT /venues/:id/audio/:file` route + **auth on all write routes** — the
-   current PUT is deliberately unauthenticated and must not face the open
-   internet).
+**Left:**
+
+1. **Admin floor-plan canvas** (next run, max effort): draw/edit zone
+   polygons over an uploaded floor-plan image; trace walkable nodes/edges on
+   the same canvas producing the frozen graph schema; measure
+   `headingOffsetDeg` (stand on a marked line, read the compass).
+2. **Auth on all server write routes** — blueprint and audio PUTs are
+   deliberately unauthenticated; the admin UI banners this. Must land before
+   any non-local deployment.
+3. **Real narration content** to replace the labeled placeholder tones.
 4. **Stride personalization** (optional): calibrate `strideM` from the known
    entrance-corridor length.
 5. **Deployment**: static Next.js hosting + the venue server; QR codes per
