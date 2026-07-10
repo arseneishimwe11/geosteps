@@ -73,4 +73,54 @@ describe('blueprint server', () => {
     expect((await fetch(`${base}/venues/museum-x/audio/..%2Fblueprint.json`)).status).toBe(400);
     expect((await fetch(`${base}/venues/..%2F..%2Fetc/blueprint.json`)).status).toBe(400);
   });
+
+  it('accepts an audio upload via PUT and serves it back byte-identical', async () => {
+    const bytes = new Uint8Array([0x52, 0x49, 0x46, 0x46, 1, 2, 3, 4, 5]); // "RIFF" + junk
+    const put = await fetch(`${base}/venues/museum-x/audio/zone-b.rw.wav`, {
+      method: 'PUT',
+      body: bytes,
+    });
+    expect(put.status).toBe(200);
+    const body = await put.json();
+    expect(body.url).toBe('audio/zone-b.rw.wav');
+
+    const got = await fetch(`${base}/venues/museum-x/audio/zone-b.rw.wav`);
+    expect(got.status).toBe(200);
+    expect(got.headers.get('content-type')).toBe('audio/wav');
+    expect(new Uint8Array(await got.arrayBuffer())).toEqual(bytes);
+  });
+
+  it('upload creates the venue audio directory when missing', async () => {
+    const put = await fetch(`${base}/venues/museum-y/audio/tone.mp3`, {
+      method: 'PUT',
+      body: new Uint8Array([1, 2, 3]),
+    });
+    expect(put.status).toBe(200);
+    expect((await fetch(`${base}/venues/museum-y/audio/tone.mp3`)).status).toBe(200);
+  });
+
+  it('rejects uploads with unsupported extensions', async () => {
+    const put = await fetch(`${base}/venues/museum-x/audio/malware.exe`, {
+      method: 'PUT',
+      body: new Uint8Array([1]),
+    });
+    expect(put.status).toBe(415);
+  });
+
+  it('rejects upload filenames that fail the safe-name rules', async () => {
+    const put = await fetch(`${base}/venues/museum-x/audio/..%2Fescape.wav`, {
+      method: 'PUT',
+      body: new Uint8Array([1]),
+    });
+    expect(put.status).toBe(400);
+  });
+
+  it('rejects uploads over the size cap with 413', async () => {
+    const big = new Uint8Array(16 * 1024 * 1024); // 16 MiB > 15 MiB cap
+    const put = await fetch(`${base}/venues/museum-x/audio/huge.wav`, {
+      method: 'PUT',
+      body: big,
+    });
+    expect(put.status).toBe(413);
+  });
 });

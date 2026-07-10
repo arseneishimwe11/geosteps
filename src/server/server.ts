@@ -9,6 +9,7 @@
  *   GET  /venues/:id/blueprint.json      -> the venue's floor blueprint
  *   PUT  /venues/:id/blueprint.json      -> replace it (validated first; admin tool)
  *   GET  /venues/:id/audio/:file         -> narration files
+ *   PUT  /venues/:id/audio/:file         -> upload narration (admin tool; 15 MiB cap)
  *
  * Auth for the PUT route is intentionally out of scope for Phase A/B
  * (see HANDOFF.md) — do not expose this write path to the open internet as-is.
@@ -21,6 +22,7 @@ import { validateBlueprint } from '../engine/blueprint';
 const VENUE_ID = /^[a-z0-9][a-z0-9-]*$/;
 const AUDIO_FILE = /^[a-zA-Z0-9][a-zA-Z0-9._-]*$/;
 const MAX_BLUEPRINT_BYTES = 5 * 1024 * 1024;
+const MAX_AUDIO_BYTES = 15 * 1024 * 1024;
 
 const AUDIO_TYPES: Record<string, string> = {
   '.mp3': 'audio/mpeg',
@@ -114,7 +116,12 @@ export function createServer(venuesDir: string): Server {
       }
 
       // /venues/:id/audio/:file
-      if (req.method === 'GET' && parts[0] === 'venues' && parts.length === 4 && parts[2] === 'audio') {
+      if (
+        (req.method === 'GET' || req.method === 'PUT') &&
+        parts[0] === 'venues' &&
+        parts.length === 4 &&
+        parts[2] === 'audio'
+      ) {
         const id = parts[1]!;
         const file = parts[3]!;
         if (!VENUE_ID.test(id) || !AUDIO_FILE.test(file) || file.includes('..')) {
@@ -127,6 +134,21 @@ export function createServer(venuesDir: string): Server {
           sendJson(res, 415, { error: `Unsupported audio type "${ext}".` });
           return;
         }
+
+        if (req.method === 'PUT') {
+          let body: Buffer;
+          try {
+            body = await readBody(req, MAX_AUDIO_BYTES);
+          } catch {
+            sendJson(res, 413, { error: `Audio file exceeds the ${MAX_AUDIO_BYTES / 1024 / 1024} MiB cap.` });
+            return;
+          }
+          await mkdir(join(root, id, 'audio'), { recursive: true });
+          await writeFile(join(root, id, 'audio', file), body);
+          sendJson(res, 200, { ok: true, url: `audio/${file}` });
+          return;
+        }
+
         try {
           const data = await readFile(join(root, id, 'audio', file));
           send(res, 200, data, type);
