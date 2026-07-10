@@ -1,0 +1,53 @@
+@import "tailwindcss";
+
+/*
+ * geosteps design tokens.
+ *
+ * The tourist surface is an instrument, not a brochure: true-black ground
+ * (AMOLED battery requirement — the screen stays on for the whole visit),
+ * one warm brass accent, parchment text, a display serif reserved for zone
+ * names. No external font fetches: venue WiFi cannot be trusted, so the
+ * display stack rides on fonts every phone already ships.
+ */
+@theme {
+  --color-ink: #000000; /* tourist ground: true black */
+  --color-slate-deep: #0e1013; /* admin ground: near-black, distinguishes the surface */
+  --color-panel: #14171b;
+  --color-hairline: #26292e;
+  --color-parchment: #ece5d6;
+  --color-stone: #99917f;
+  --color-brass: #d2a24c;
+  --color-brass-bright: #ecc887;
+  --color-moss: #8fb562;
+  --color-ember: #e06a58;
+  --color-ember-deep: #52201a;
+  --color-moss-deep: #1f2c14;
+
+  --font-display: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+  --font-body: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+
+  --animate-guide-pulse: guide-pulse 2.4s ease-in-out infinite;
+  @keyframes guide-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.35; }
+  }
+  --animate-breathe: breathe 3.2s ease-in-out infinite;
+  @keyframes breathe {
+    0%, 100% { transform: scale(1); opacity: 0.55; }
+    50% { transform: scale(1.18); opacity: 0.25; }
+  }
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--color-ink);
+  color: var(--color-parchment);
+  -webkit-font-smoothing: antialiased;
+  /* The guide runs full-visit with the screen on; kill overscroll bounce flashes. */
+  overscroll-behavior: none;
+}
