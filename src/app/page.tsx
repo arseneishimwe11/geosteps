@@ -1,60 +1,41 @@
-import Link from 'next/link';
+import type { Metadata } from 'next';
+import { Calibrate } from '../ui/landing/Calibrate';
+import { FinalCta } from '../ui/landing/FinalCta';
+import { Footer } from '../ui/landing/Footer';
+import { Hero } from '../ui/landing/Hero';
+import { HowItWorks } from '../ui/landing/HowItWorks';
+import { Languages } from '../ui/landing/Languages';
+import { Nav } from '../ui/landing/Nav';
+import { ScrollWalk } from '../ui/landing/ScrollWalk';
+import { Stakes } from '../ui/landing/Stakes';
+import { Truth } from '../ui/landing/Truth';
+
+export const metadata: Metadata = {
+  title: 'geosteps — the story finds you',
+  description:
+    'A web audio guide for museums and cultural sites. Every visitor hears each exhibit in their own language — no app, no beacons, nothing added to the building.',
+};
 
 /**
- * Landing / venue chooser. In production a visitor never sees this — the QR
- * code deep-links straight to /tour/<venue>. It exists for development and
- * for staff to reach the admin surface.
+ * The landing page — "after-hours gallery": true black, one brass light,
+ * honesty as the luxury. Static-first (Phase 1); scroll choreography lands
+ * in Phase 2, the 3D device in Phase 3.
  */
-export default function Home() {
+export default function LandingPage() {
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-10 px-6 py-16">
-      <header>
-        <p className="mb-2 text-xs uppercase tracking-[0.3em] text-brass">geosteps</p>
-        <h1 className="font-display text-4xl leading-tight text-parchment">
-          Indoor audio guide,
-          <br />
-          no app required.
-        </h1>
-        <p className="mt-3 text-sm leading-relaxed text-stone">
-          Visitors scan a QR code at the entrance. Staff calibrate once. Everything below runs on
-          the demo venue.
-        </p>
-      </header>
-
-      <nav className="flex flex-col gap-3">
-        <Link
-          href="/tour/demo"
-          className="rounded-2xl border border-brass/40 bg-panel px-5 py-4 transition-colors hover:border-brass"
-        >
-          <span className="block font-display text-xl text-brass-bright">Tourist runtime</span>
-          <span className="mt-1 block text-sm text-stone">
-            What the visitor's QR code opens — language pick, one-tap start, hands-free guiding.
-          </span>
-        </Link>
-        <Link
-          href="/admin/demo"
-          className="rounded-2xl border border-hairline bg-panel px-5 py-4 transition-colors hover:border-stone"
-        >
-          <span className="block font-display text-xl text-parchment">Admin calibration</span>
-          <span className="mt-1 block text-sm text-stone">
-            Acoustic snapshots, narration slots, blueprint validation & save.
-          </span>
-        </Link>
-        <Link
-          href="/dev/audits"
-          className="rounded-2xl border border-hairline bg-panel px-5 py-4 transition-colors hover:border-stone"
-        >
-          <span className="block font-mono text-sm text-moss">/dev/audits</span>
-          <span className="mt-1 block text-sm text-stone">
-            Field-observability: recent acoustic-corrector audit records.
-          </span>
-        </Link>
-      </nav>
-
-      <footer className="text-xs leading-relaxed text-stone/70">
-        Requires the venue server: <code className="font-mono">npm run server</code> (port 4000).
-        Tourist dev simulator: append <code className="font-mono">?dev=1</code>.
-      </footer>
-    </main>
+    <div className="bg-ink">
+      <Nav />
+      <main>
+        <Hero />
+        <ScrollWalk />
+        <Stakes />
+        <HowItWorks />
+        <Truth />
+        <Calibrate />
+        <Languages />
+        <FinalCta />
+      </main>
+      <Footer />
+    </div>
   );
 }
