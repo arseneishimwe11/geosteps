@@ -1,12 +1,28 @@
+'use client';
+
 /**
- * The hero device — Phase 1: the design export's CSS frame, rebuilt on
- * tokens. This exact component remains the low-power / reduced-motion /
- * no-WebGL fallback once the 3D device lands in Phase 3, so the screen
- * content is built once and shared.
+ * The hero device's screen and its CSS-frame fallback.
  *
- * The screen mirrors the real tourist guide UI (same states, same tokens,
- * same honest caption) — swapped for the live app screen in Phase 4.
+ * The screen is NOT a mockup: `useAttractGuide` runs the real frozen
+ * PositionEngine over the real demo-venue blueprint on a scripted loop, and
+ * everything below — zone name, confidence radius, step count, the minimap
+ * dot and disc — renders the engine's own output. The minimap is the actual
+ * tourist-runtime `Minimap` component. Under reduced motion (and during
+ * SSR) the screen shows one frozen mid-visit frame of the same data.
  */
+
+import { Minimap } from '../tour/Minimap';
+import { demoBlueprint, useAttractGuide } from './attract/useAttractGuide';
+
+/** Illustrative narration titles for the demo venue's zones (the seeded
+ * blueprint ships placeholder tones; real titles read better than
+ * "Placeholder tone — not narration" on a wall). */
+const NARRATION_TITLES: Record<string, string> = {
+  'entrance-hall': 'Welcome to the royal court',
+  'royal-drums': 'The royal drums of the kingdom',
+  'kingdom-history': 'Four centuries, one thread',
+  'contemporary-wing': 'New voices, old threads',
+};
 
 function StatusBar() {
   return (
@@ -27,124 +43,101 @@ function StatusBar() {
   );
 }
 
-function MiniMap() {
-  return (
-    <div className="relative overflow-hidden rounded-2xl border border-hairline bg-gradient-to-br from-[#101317] to-[#0b0d10] p-2.5">
-      <svg viewBox="0 0 240 172" className="block w-full" aria-label="Floor minimap with the visitor's approximate position">
-        <defs>
-          <radialGradient id="hpHalo" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#ecc887" stopOpacity="0.55" />
-            <stop offset="55%" stopColor="#d2a24c" stopOpacity="0.16" />
-            <stop offset="100%" stopColor="#d2a24c" stopOpacity="0" />
-          </radialGradient>
-          <filter id="hpBlur" x="-60%" y="-60%" width="220%" height="220%">
-            <feGaussianBlur stdDeviation="5" />
-          </filter>
-        </defs>
-        <rect x="14" y="12" width="86" height="58" rx="6" fill="none" stroke="#2c3037" strokeWidth="1" />
-        <rect x="14" y="86" width="98" height="74" rx="6" fill="none" stroke="#2c3037" strokeWidth="1" />
-        <rect x="128" y="94" width="98" height="66" rx="6" fill="none" stroke="#2c3037" strokeWidth="1" />
-        <rect x="116" y="12" width="110" height="70" rx="7" fill="rgba(210,162,76,.09)" stroke="#d2a24c" strokeWidth="1.2" />
-        <polyline
-          points="60,150 60,110 60,52 112,44 168,44"
-          fill="none"
-          stroke="#8fb562"
-          strokeOpacity="0.55"
-          strokeWidth="2"
-          strokeDasharray="1 6"
-          strokeLinecap="round"
-        />
-        <circle cx="60" cy="150" r="3" fill="#8fb562" fillOpacity="0.7" />
-        <circle cx="176" cy="46" r="40" fill="url(#hpHalo)" filter="url(#hpBlur)" />
-        <circle cx="176" cy="46" r="4.5" fill="#f2d79a" fillOpacity="0.85" />
-        <text x="124" y="28" fontSize="8" letterSpacing="1.4" fill="#ecc887" style={{ fontFamily: 'var(--font-mono)' }}>
-          ROYAL DRUMS
-        </text>
-        <text x="22" y="26" fontSize="7.5" letterSpacing="1.2" fill="#5b5e64" style={{ fontFamily: 'var(--font-mono)' }}>
-          MASKS
-        </text>
-        <text x="22" y="100" fontSize="7.5" letterSpacing="1.2" fill="#5b5e64" style={{ fontFamily: 'var(--font-mono)' }}>
-          KINGDOM
-        </text>
-      </svg>
-      <div className="mt-2 flex items-center gap-1.5 px-0.5">
-        <span className="h-[7px] w-[7px] rounded-full bg-[radial-gradient(circle,#f2d79a,rgba(242,215,154,0))]" />
-        <span className="font-mono text-[8px] tracking-[0.08em] text-[#6b6e74]">
-          approximate position — room-level, not a precise dot
-        </span>
-      </div>
-    </div>
-  );
-}
-
 /**
  * The lit screen surface, shared verbatim between the CSS device frame
- * below and the 3D device's DOM overlay (Phase 3) — one source of truth
- * for what the guide looks like mid-visit.
+ * below and the 3D device's DOM overlay — one source of truth for what the
+ * guide looks like mid-visit.
  */
 export function GuideScreen({ className = '' }: { className?: string }) {
+  const { position, lastZoneId } = useAttractGuide();
+  const zone = position.currentZoneId
+    ? demoBlueprint.zones.find((z) => z.id === position.currentZoneId)
+    : null;
+  const playingZone = lastZoneId ? demoBlueprint.zones.find((z) => z.id === lastZoneId) : null;
+
   return (
     <div className={`relative flex h-full w-full flex-col overflow-hidden bg-ink ${className}`}>
-        {/* top screen glow — the lantern */}
-        <div className="pointer-events-none absolute left-1/2 top-[-6%] h-[44%] w-[150%] -translate-x-1/2 bg-[radial-gradient(ellipse_at_50%_0%,rgba(210,162,76,.14),rgba(210,162,76,0)_70%)]" />
-        {/* dynamic island */}
-        <div className="absolute left-1/2 top-[11px] z-[8] h-[27px] w-[92px] -translate-x-1/2 rounded-2xl bg-ink shadow-[inset_0_0_0_1px_#16181c]" />
-        <StatusBar />
+      {/* top screen glow — the lantern */}
+      <div className="pointer-events-none absolute left-1/2 top-[-6%] h-[44%] w-[150%] -translate-x-1/2 bg-[radial-gradient(ellipse_at_50%_0%,rgba(210,162,76,.14),rgba(210,162,76,0)_70%)]" />
+      {/* dynamic island */}
+      <div className="absolute left-1/2 top-[11px] z-[8] h-[27px] w-[92px] -translate-x-1/2 rounded-2xl bg-ink shadow-[inset_0_0_0_1px_#16181c]" />
+      <StatusBar />
 
-        <div className="relative z-[3] flex min-h-0 flex-1 flex-col px-5 pt-5">
-          <div className="mb-5 flex items-center justify-between">
-            <span className="font-mono text-[10px] font-medium tracking-[0.18em] text-stone">ROYAL PALACE</span>
-            <span className="flex items-center gap-1.5 whitespace-nowrap rounded-full border border-moss/30 bg-moss/5 px-2 py-1 font-mono text-[9.5px] font-medium tracking-[0.06em] text-moss">
-              <span className="h-[5px] w-[5px] rounded-full bg-moss shadow-[0_0_8px] shadow-moss" />
-              WAKE LOCK
+      <div className="relative z-[3] flex min-h-0 flex-1 flex-col px-5 pt-5">
+        <div className="mb-5 flex items-center justify-between">
+          <span className="font-mono text-[10px] font-medium tracking-[0.18em] text-stone">ROYAL PALACE</span>
+          <span className="flex items-center gap-1.5 whitespace-nowrap rounded-full border border-moss/30 bg-moss/5 px-2 py-1 font-mono text-[9.5px] font-medium tracking-[0.06em] text-moss">
+            <span className="h-[5px] w-[5px] rounded-full bg-moss shadow-[0_0_8px] shadow-moss" />
+            WAKE LOCK
+          </span>
+        </div>
+
+        <div className="mb-3 font-mono text-[9px] font-medium tracking-[0.26em] text-stone">
+          {zone ? 'YOU ARE IN' : 'BETWEEN EXHIBITS'}
+        </div>
+        <div
+          key={zone?.id ?? 'between'}
+          className="animate-gs-warm font-display text-[clamp(26px,3.1vw,31px)] font-medium leading-[1.04] tracking-[-0.01em] text-brass-bright [animation-delay:.15s] [text-shadow:0_0_30px_rgba(236,200,135,.4)]"
+        >
+          {zone ? zone.name : '· · ·'}
+        </div>
+
+        <div className="mb-4 mt-3.5 flex items-center gap-2">
+          <span className="relative h-[9px] w-[9px]">
+            <span className="absolute -inset-1 animate-gs-ring rounded-full border-[1.5px] border-moss" />
+            <span className="absolute inset-0 animate-guide-pulse rounded-full bg-moss shadow-[0_0_8px] shadow-moss" />
+          </span>
+          <span className="text-[12.5px] font-medium text-moss">Guide active</span>
+          <span className="ml-auto flex flex-col items-end leading-tight">
+            <span className="font-mono text-xs font-medium text-parchment">
+              ±{position.uncertaintyM.toFixed(1)} m
             </span>
-          </div>
-
-          <div className="mb-3 font-mono text-[9px] font-medium tracking-[0.26em] text-stone">NOW APPROACHING</div>
-          <div
-            className="animate-gs-warm font-display text-[clamp(30px,3.4vw,36px)] font-medium leading-none tracking-[-0.01em] text-brass-bright [animation-delay:.3s] [text-shadow:0_0_30px_rgba(236,200,135,.4)]"
-          >
-            Royal Drum
-            <br />
-            Gallery
-          </div>
-
-          <div className="mb-5 mt-4 flex items-center gap-2">
-            <span className="relative h-[9px] w-[9px]">
-              <span className="absolute -inset-1 animate-gs-ring rounded-full border-[1.5px] border-moss" />
-              <span className="absolute inset-0 animate-guide-pulse rounded-full bg-moss shadow-[0_0_8px] shadow-moss" />
+            <span className="mt-[3px] font-mono text-[7.5px] tracking-[0.12em] text-[#4c4f55]">
+              CONFIDENCE · {position.stepCount} STEPS
             </span>
-            <span className="text-[12.5px] font-medium text-moss">Guide active</span>
-            <span className="ml-auto flex flex-col items-end leading-tight">
-              <span className="font-mono text-xs font-medium text-parchment">±3 m</span>
-              <span className="mt-[3px] font-mono text-[7.5px] tracking-[0.12em] text-[#4c4f55]">CONFIDENCE</span>
-            </span>
-          </div>
+          </span>
+        </div>
 
-          <MiniMap />
+        {/* the real tourist-runtime minimap, fed by the real engine */}
+        <Minimap blueprint={demoBlueprint} position={position} />
+        <div className="mt-2 flex items-center gap-1.5 px-0.5">
+          <span className="h-[7px] w-[7px] rounded-full bg-[radial-gradient(circle,#f2d79a,rgba(242,215,154,0))]" />
+          <span className="font-mono text-[8px] tracking-[0.08em] text-[#6b6e74]">
+            approximate position — room-level, not a precise dot
+          </span>
+        </div>
 
-          <div className="mb-4 mt-auto pt-4">
-            <div className="flex items-center gap-3 rounded-2xl border border-hairline bg-gradient-to-br from-[#16191e] to-[#0d0f12] px-3 py-2.5">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[radial-gradient(circle_at_38%_32%,#ecc887,#d2a24c_78%)] shadow-[0_0_18px_rgba(210,162,76,.55)]">
-                <span className="flex gap-[3px]">
-                  <span className="h-[13px] w-[3px] rounded-[1px] bg-ink" />
-                  <span className="h-[13px] w-[3px] rounded-[1px] bg-ink" />
-                </span>
+        {/* the runtime's manual-browse affordance (decorative here) */}
+        <div className="mt-3 rounded-xl border border-hairline px-4 py-2.5 text-center text-[11.5px] text-stone">
+          Browse exhibits manually
+        </div>
+
+        <div className="mb-4 mt-auto pt-4">
+          <div className="flex items-center gap-3 rounded-2xl border border-hairline bg-gradient-to-br from-[#16191e] to-[#0d0f12] px-3 py-2.5">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[radial-gradient(circle_at_38%_32%,#ecc887,#d2a24c_78%)] shadow-[0_0_18px_rgba(210,162,76,.55)]">
+              <span className="flex gap-[3px]">
+                <span className="h-[13px] w-[3px] rounded-[1px] bg-ink" />
+                <span className="h-[13px] w-[3px] rounded-[1px] bg-ink" />
               </span>
-              <div className="min-w-0 flex-1">
-                <div className="mb-1 font-mono text-[8px] font-medium tracking-[0.16em] text-stone">NOW PLAYING · EN</div>
-                <div className="truncate text-[12.5px] text-parchment">The royal drums of the kingdom</div>
-                <div className="mt-2 flex items-center gap-2">
-                  <div className="relative h-[3px] flex-1 rounded-sm bg-hairline">
-                    <div className="h-full w-[38%] rounded-sm bg-gradient-to-r from-brass to-brass-bright" />
-                    <span className="absolute left-[38%] top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-brass-bright shadow-[0_0_8px_rgba(236,200,135,.8)]" />
-                  </div>
-                  <span className="font-mono text-[8.5px] font-medium text-[#6b6e74]">1:12</span>
+            </span>
+            <div className="min-w-0 flex-1">
+              <div className="mb-1 font-mono text-[8px] font-medium tracking-[0.16em] text-stone">
+                NOW PLAYING · EN
+              </div>
+              <div className="truncate text-[12.5px] text-parchment">
+                {(playingZone && NARRATION_TITLES[playingZone.id]) ?? 'Narration playing'}
+              </div>
+              <div className="mt-2 flex items-center gap-2">
+                <div className="relative h-[3px] flex-1 rounded-sm bg-hairline">
+                  <div className="h-full w-[38%] rounded-sm bg-gradient-to-r from-brass to-brass-bright" />
+                  <span className="absolute left-[38%] top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-brass-bright shadow-[0_0_8px_rgba(236,200,135,.8)]" />
                 </div>
+                <span className="font-mono text-[8.5px] font-medium text-[#6b6e74]">1:12</span>
               </div>
             </div>
           </div>
         </div>
+      </div>
 
       {/* home indicator */}
       <div className="absolute bottom-2 left-1/2 z-[6] h-[5px] w-[120px] -translate-x-1/2 rounded-[3px] bg-parchment/40" />

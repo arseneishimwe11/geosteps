@@ -13,7 +13,7 @@ export function Footer() {
           </p>
         </div>
 
-        <div className="flex flex-col gap-2 font-mono text-[11px] leading-relaxed text-stone/70">
+        <div className="flex flex-col gap-2 font-mono text-[11px] leading-relaxed text-stone/85">
           <span className="mb-1 tracking-[0.2em] text-stone">COLOPHON</span>
           <span>Fonts self-hosted · no trackers · no analytics</span>
           <span>Positioning runs on the visitor&rsquo;s phone; nothing is recorded or uploaded</span>
@@ -40,9 +40,9 @@ export function Footer() {
 
         <div className="flex flex-col gap-2 font-mono text-[11px] leading-relaxed">
           <span className="mb-1 tracking-[0.2em] text-stone">FOR DEVELOPERS</span>
-          <a href="/tour/demo" className="text-stone/70 transition-colors hover:text-brass">/tour/demo — visitor runtime</a>
-          <a href="/admin/demo" className="text-stone/70 transition-colors hover:text-brass">/admin/demo — calibration</a>
-          <a href="/dev/audits" className="text-stone/70 transition-colors hover:text-brass">/dev/audits — field observability</a>
+          <a href="/tour/demo" className="text-stone/85 transition-colors hover:text-brass">/tour/demo — visitor runtime</a>
+          <a href="/admin/demo" className="text-stone/85 transition-colors hover:text-brass">/admin/demo — calibration</a>
+          <a href="/dev/audits" className="text-stone/85 transition-colors hover:text-brass">/dev/audits — field observability</a>
         </div>
       </div>
     </footer>

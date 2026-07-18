@@ -104,6 +104,18 @@ export function Truth() {
               </li>
             ))}
           </ul>
+          {/* quoted verbatim from src/engine/platform/sensors.ts (MSG.motionDenied) —
+              the string the product actually shows, not marketing copy about it */}
+          <div className="mt-6 border-t border-[#1c1f24] pt-5">
+            <div className="mb-2 font-mono text-[9px] font-medium tracking-[0.2em] text-stone">
+              VERBATIM — WHAT A VISITOR SEES IF THEY DECLINE MOTION ACCESS
+            </div>
+            <blockquote className="max-w-[74ch] text-[13.5px] italic leading-[1.65] text-[#c9c1b0]">
+              &ldquo;Motion access was declined, so the guide cannot follow your steps. Reload the
+              page and allow motion access to enable automatic guiding, or continue in manual
+              mode.&rdquo;
+            </blockquote>
+          </div>
         </div>
       </div>
     </section>

@@ -187,6 +187,24 @@ intermediate layer ~13k px and paints reliably.
   stage (the honest-states screen) — and its message strings are replaced with the
   engine's real verbatim strings from `sensors.ts`/`wakeLock.ts`.
 
+**Phase 4 outcome (shipped).** The hero screen is now engine-driven:
+`useAttractGuide` instantiates the real `PositionEngine` on the real demo
+blueprint and walks a scripted loop using the dev simulator's exact input
+patterns (heading burst + `stepOnce`; jittered stored fingerprints for
+ambient samples). `GuideSession` itself is not mounted — it is platform glue
+(permissions, wake lock, mic, audio unlock) that has no meaning without a
+gesture on a marketing page — but every rendered value (zone, ±confidence,
+step count, minimap dot and disc) is engine output, and the minimap is the
+real tourist-runtime `Minimap` component. Verified live: geofence
+enter/exit with debounce, honest uncertainty growth along the corridor, and
+the acoustic re-anchor snapping ±4.3 m → ±3.0 m mid-dwell. Reduced motion
+keeps one frozen frame of the same data. The calibration window is a real
+2× capture of `/admin/demo`, staged with the tool itself (floor-plan
+backdrop uploaded, scale calibrated 44 m, zone selected; nothing saved) at
+`public/landing/admin-canvas.webp`. The Truth section quotes
+`MSG.motionDenied` verbatim. A11y: global brass `:focus-visible` treatment,
+footer contrast raised to AA.
+
 ## 8. Performance & accessibility budget (hard gates before ship)
 
 - Hero headline is server-rendered HTML; **no animation or 3D blocks first paint**;
