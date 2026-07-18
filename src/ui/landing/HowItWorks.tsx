@@ -24,12 +24,12 @@ export function HowItWorks() {
     <section className="border-t border-hairline/50">
       <div className="mx-auto max-w-6xl px-5 py-20 sm:px-8 lg:py-28">
         <SectionLabel>How it works</SectionLabel>
-        <h2 className="font-display text-[clamp(30px,5vw,52px)] font-medium leading-[1.06] tracking-[-0.02em] text-parchment">
+        <h2 data-reveal className="font-display text-[clamp(30px,5vw,52px)] font-medium leading-[1.06] tracking-[-0.02em] text-parchment">
           Three things a visitor does. That&rsquo;s all.
         </h2>
         <div className="mt-12 divide-y divide-hairline/60 border-y border-hairline/60">
           {STEPS.map((s) => (
-            <div key={s.n} className="grid items-baseline gap-x-10 gap-y-2 py-7 sm:grid-cols-[80px_280px_1fr] lg:py-9">
+            <div key={s.n} data-reveal className="grid items-baseline gap-x-10 gap-y-2 py-7 sm:grid-cols-[80px_280px_1fr] lg:py-9">
               <span className="font-mono text-sm font-medium tracking-[0.2em] text-brass">{s.n}</span>
               <h3 className="font-display text-xl font-medium text-parchment lg:text-2xl">{s.title}</h3>
               <p className="max-w-[52ch] text-[15px] leading-[1.65] text-stone">{s.body}</p>

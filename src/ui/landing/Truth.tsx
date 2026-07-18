@@ -73,7 +73,7 @@ export function Truth() {
     <section id="truth" className="border-t border-hairline/50 bg-gradient-to-b from-ink via-[#0a0b0d] to-ink">
       <div className="mx-auto max-w-6xl px-5 py-20 sm:px-8 lg:py-32">
         <SectionLabel>Under the hood</SectionLabel>
-        <h2 className="font-display text-[clamp(30px,5vw,56px)] font-medium leading-[1.06] tracking-[-0.02em] text-parchment">
+        <h2 data-reveal className="font-display text-[clamp(30px,5vw,56px)] font-medium leading-[1.06] tracking-[-0.02em] text-parchment">
           We&rsquo;d rather tell you <em className="font-medium italic text-brass-bright">the truth.</em>
         </h2>
         <p className="mt-5 max-w-[58ch] text-[clamp(16px,1.5vw,18.5px)] leading-[1.65] text-stone">
@@ -83,7 +83,7 @@ export function Truth() {
 
         <div className="mt-12 grid gap-5 md:grid-cols-3 lg:mt-16">
           {MECHANISMS.map((m) => (
-            <div key={m.tag} className="flex flex-col rounded-[18px] border border-hairline bg-gradient-to-br from-[#101317] to-[#0b0d10] p-6">
+            <div key={m.tag} data-reveal className="flex flex-col rounded-[18px] border border-hairline bg-gradient-to-br from-[#101317] to-[#0b0d10] p-6">
               <span className="mb-4 font-mono text-[10px] font-medium tracking-[0.22em] text-brass">{m.tag}</span>
               <h3 className="font-display text-xl font-medium text-parchment">{m.title}</h3>
               <p className="mb-6 mt-3 text-[14px] leading-[1.65] text-stone">{m.body}</p>
@@ -92,7 +92,7 @@ export function Truth() {
           ))}
         </div>
 
-        <div className="mt-8 rounded-[18px] border border-hairline bg-[#0b0d10] p-6 sm:p-8">
+        <div data-reveal data-reveal-delay="0.1" className="mt-8 rounded-[18px] border border-hairline bg-[#0b0d10] p-6 sm:p-8">
           <div className="mb-5 font-mono text-[10px] font-medium tracking-[0.22em] text-stone">
             WHAT IT DOESN&rsquo;T DO — SAID PLAINLY
           </div>

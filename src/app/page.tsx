@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { LandingMotion } from '../ui/landing/motion/LandingMotion';
 import { Calibrate } from '../ui/landing/Calibrate';
 import { FinalCta } from '../ui/landing/FinalCta';
 import { Footer } from '../ui/landing/Footer';
@@ -24,6 +25,7 @@ export const metadata: Metadata = {
 export default function LandingPage() {
   return (
     <div className="bg-ink">
+      <LandingMotion />
       <Nav />
       <main>
         <Hero />

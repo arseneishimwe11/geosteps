@@ -37,7 +37,7 @@ export function Calibrate() {
         </div>
 
         {/* the calibration window */}
-        <div className="overflow-hidden rounded-2xl border border-[#2c3037] bg-[#0c0e11] shadow-[0_60px_150px_-60px_rgba(0,0,0,.95)]">
+        <div data-reveal className="overflow-hidden rounded-2xl border border-[#2c3037] bg-[#0c0e11] shadow-[0_60px_150px_-60px_rgba(0,0,0,.95)]">
           <div className="flex items-center gap-3.5 border-b border-[#1c1f24] bg-gradient-to-b from-[#16191e] to-[#101317] px-4 py-3">
             <div className="flex gap-2">
               <span className="h-3 w-3 rounded-full bg-ember" />
@@ -76,7 +76,7 @@ export function Calibrate() {
                 {[[354, 84], [654, 84], [654, 294], [514, 294, true], [514, 214], [354, 214]].map(([x, y, active], i) => (
                   <rect key={i} x={x as number} y={y as number} width="12" height="12" fill={active ? '#ecc887' : '#0e1013'} stroke="#ecc887" strokeWidth="1.5" />
                 ))}
-                <polyline points="190,430 190,360 190,170 460,170 460,340" fill="none" stroke="#8fb562" strokeOpacity="0.85" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                <polyline data-draw points="190,430 190,360 190,170 460,170 460,340" fill="none" stroke="#8fb562" strokeOpacity="0.85" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
                 {[[190, 430], [190, 170], [460, 170]].map(([x, y], i) => (
                   <circle key={i} cx={x} cy={y} r="5.5" fill="#0e1013" stroke="#8fb562" strokeWidth="1.5" />
                 ))}

@@ -14,12 +14,12 @@ export function Stakes() {
     <section className="border-t border-hairline/50">
       <div className="mx-auto max-w-6xl px-5 py-20 sm:px-8 lg:py-32">
         <SectionLabel>The human stakes</SectionLabel>
-        <h2 className="max-w-[19ch] font-display text-[clamp(30px,5vw,58px)] font-medium leading-[1.08] tracking-[-0.02em] text-parchment">
+        <h2 data-reveal className="max-w-[19ch] font-display text-[clamp(30px,5vw,58px)] font-medium leading-[1.08] tracking-[-0.02em] text-parchment">
           Two guides. Four hundred visitors a day. Five languages between them.
         </h2>
 
         <div className="mt-12 flex flex-wrap items-start gap-x-20 gap-y-10 lg:mt-16">
-          <div className="min-w-[min(100%,300px)] flex-[1_1_380px]">
+          <div data-reveal className="min-w-[min(100%,300px)] flex-[1_1_380px]">
             <p className="mb-6 max-w-[44ch] text-[clamp(16px,1.5vw,19px)] leading-[1.7] text-[#c9c1b0]">
               On a busy morning, two or three guides move through the galleries. They are wonderful —
               and there are hundreds of visitors, speaking languages no small team can cover at once.
@@ -33,7 +33,7 @@ export function Stakes() {
             </p>
           </div>
 
-          <div className="min-w-[min(100%,300px)] flex-[1_1_340px] rounded-[18px] border border-hairline bg-gradient-to-br from-[#101317] to-[#0b0d10] p-6 sm:p-8">
+          <div data-reveal data-reveal-delay="0.15" className="min-w-[min(100%,300px)] flex-[1_1_340px] rounded-[18px] border border-hairline bg-gradient-to-br from-[#101317] to-[#0b0d10] p-6 sm:p-8">
             <div className="mb-7 flex items-baseline justify-between">
               <span className="font-mono text-[10px] font-medium tracking-[0.2em] text-stone">
                 WHO HEARS THE FULL STORY
@@ -46,6 +46,7 @@ export function Stakes() {
                   <span className={`text-sm ${bright ? 'text-parchment' : 'text-stone'}`}>{lang}</span>
                   <span className="relative h-1.5 overflow-hidden rounded-[3px] bg-[#1c1f24]">
                     <span
+                      data-bar-fill
                       className={`absolute inset-y-0 left-0 rounded-[3px] ${
                         bright ? 'bg-gradient-to-r from-brass to-brass-bright' : 'bg-[#8f7a4e]'
                       }`}

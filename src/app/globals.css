@@ -79,3 +79,9 @@ body {
   /* The guide runs full-visit with the screen on; kill overscroll bounce flashes. */
   overscroll-behavior: none;
 }
+
+/* Landing nav once the gallery starts scrolling (toggled by LandingMotion). */
+.nav-scrolled {
+  box-shadow: 0 14px 40px -20px rgba(0, 0, 0, 0.9);
+  border-bottom-color: var(--color-hairline);
+}

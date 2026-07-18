@@ -7,7 +7,7 @@ export function Nav() {
     ['#languages', 'Languages'],
   ] as const;
   return (
-    <nav className="sticky top-0 z-50 border-b border-hairline/50 bg-ink/75 backdrop-blur-md">
+    <nav data-nav className="sticky top-0 z-50 border-b border-hairline/50 bg-ink/75 backdrop-blur-md transition-shadow duration-500">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-6 px-5 py-3.5 sm:px-8">
         <a href="#top" className="flex items-center gap-2.5">
           <span className="h-2.5 w-2.5 rounded-full bg-brass shadow-[0_0_14px_2px] shadow-brass/70" />

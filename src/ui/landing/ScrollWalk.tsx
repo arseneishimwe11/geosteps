@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { SectionLabel } from './bits';
 
 /**
@@ -121,14 +121,81 @@ function zoneAt(x: number, y: number): ZoneDef | null {
 
 export function ScrollWalk() {
   const { seg, total } = useMemo(routeGeometry, []);
-  const [t, setT] = useState(0.52); // default: mid-walk, inside the Royal Drum Gallery
+  const [t, setT] = useState(0.52); // static/mobile default: mid-walk, inside the Royal Drum Gallery
+  const sectionRef = useRef<HTMLElement | null>(null);
+  const planRef = useRef<HTMLDivElement | null>(null);
+  const cardRef = useRef<HTMLDivElement | null>(null);
   const walked = t * total;
   const [px, py] = pointAt(walked, seg);
   const zone = zoneAt(px, py);
   const card = zone ?? BETWEEN;
 
+  // Desktop: pin the section and let SCROLL walk the gallery — the page's
+  // signature interaction. The drag scrubber keeps working inside the pin.
+  // Touch/small screens keep direct drag; reduced motion gets the static page.
+  useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    let cleanup: (() => void) | undefined;
+    let cancelled = false;
+    void (async () => {
+      const [{ default: gsap }, { ScrollTrigger }] = await Promise.all([
+        import('gsap'),
+        import('gsap/ScrollTrigger'),
+      ]);
+      if (cancelled) return;
+      gsap.registerPlugin(ScrollTrigger);
+      const mm = gsap.matchMedia();
+      mm.add('(min-width: 1024px)', () => {
+        const proxy = { t: 0 };
+        setT(0);
+        const tl = gsap.timeline({
+          scrollTrigger: {
+            trigger: sectionRef.current,
+            start: 'top top',
+            end: '+=260%',
+            pin: true,
+            scrub: 0.6,
+            anticipatePin: 1,
+          },
+        });
+        // entry: the map grows out of the lantern's minimap, the card follows
+        tl.fromTo(
+          planRef.current,
+          { scale: 0.62, y: 44, transformOrigin: 'center 18%', autoAlpha: 0.35 },
+          { scale: 1, y: 0, autoAlpha: 1, duration: 0.16, ease: 'power2.out' },
+          0,
+        );
+        tl.fromTo(
+          cardRef.current,
+          { x: 48, autoAlpha: 0 },
+          { x: 0, autoAlpha: 1, duration: 0.14, ease: 'power2.out' },
+          0.04,
+        );
+        // the walk itself
+        tl.to(proxy, {
+          t: 1,
+          duration: 0.84,
+          ease: 'none',
+          onUpdate: () => setT(proxy.t),
+        });
+        return () => {
+          setT(0.52);
+        };
+      });
+      cleanup = () => mm.revert();
+    })();
+    return () => {
+      cancelled = true;
+      cleanup?.();
+    };
+  }, []);
+
   return (
-    <section id="walk" className="relative border-t border-hairline/50 bg-gradient-to-b from-ink via-[#0a0b0d] to-ink">
+    <section
+      id="walk"
+      ref={sectionRef}
+      className="relative border-t border-hairline/50 bg-gradient-to-b from-ink via-[#0a0b0d] to-ink"
+    >
       <div className="mx-auto max-w-6xl px-5 py-20 sm:px-8 lg:py-32">
         <div className="mb-12 max-w-2xl lg:mb-16">
           <SectionLabel>The product in action</SectionLabel>
@@ -143,7 +210,10 @@ export function ScrollWalk() {
 
         <div className="flex flex-wrap items-stretch gap-6 lg:gap-10">
           {/* floor plan */}
-          <div className="min-w-[min(100%,320px)] flex-[1.5_1_480px] rounded-[20px] border border-hairline bg-gradient-to-br from-[#0d0f12] to-[#08090b] p-4 shadow-[0_40px_100px_-50px_rgba(0,0,0,.9)] sm:p-5">
+          <div
+            ref={planRef}
+            className="min-w-[min(100%,320px)] flex-[1.5_1_480px] rounded-[20px] border border-hairline bg-gradient-to-br from-[#0d0f12] to-[#08090b] p-4 shadow-[0_40px_100px_-50px_rgba(0,0,0,.9)] sm:p-5"
+          >
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
               <span className="font-mono text-[10px] font-medium tracking-[0.2em] text-stone">
                 ROYAL PALACE · GROUND FLOOR
@@ -254,7 +324,10 @@ export function ScrollWalk() {
           </div>
 
           {/* narration card */}
-          <div className="flex min-w-[min(100%,300px)] flex-[1_1_320px] flex-col rounded-[20px] border border-hairline bg-gradient-to-br from-[#101317] to-[#0b0d10] p-6 sm:p-8">
+          <div
+            ref={cardRef}
+            className="flex min-w-[min(100%,300px)] flex-[1_1_320px] flex-col rounded-[20px] border border-hairline bg-gradient-to-br from-[#101317] to-[#0b0d10] p-6 sm:p-8"
+          >
             <div className="mb-5 flex items-center gap-2 font-mono text-[10px] font-medium tracking-[0.2em] text-moss">
               <span className="h-1.5 w-1.5 animate-guide-pulse rounded-full bg-moss shadow-[0_0_8px] shadow-moss" />
               NOW GUIDING
@@ -287,7 +360,8 @@ export function ScrollWalk() {
             <div className="mt-6">
               <div className="mb-2.5 flex items-center justify-between">
                 <span className="font-mono text-[9.5px] font-medium tracking-[0.16em] text-[#6b6e74]">
-                  DRAG TO WALK THE GALLERY
+                  <span className="max-lg:hidden">SCROLL — OR DRAG — TO WALK</span>
+                  <span className="lg:hidden">DRAG TO WALK THE GALLERY</span>
                 </span>
                 <span className="font-mono text-[9.5px] font-medium tracking-[0.1em] text-[#4c4f55]">
                   ENTRANCE → TEXTILES

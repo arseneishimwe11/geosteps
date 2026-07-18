@@ -19,7 +19,7 @@ export function Hero() {
         }}
       />
       {/* the single light source, behind the device */}
-      <div className="pointer-events-none absolute right-[-8%] top-[6%] h-[720px] w-[min(740px,85vw)] max-h-[92%] animate-gs-glow bg-[radial-gradient(circle_at_62%_42%,rgba(210,162,76,.17)_0%,rgba(210,162,76,.05)_34%,rgba(210,162,76,0)_62%)]" />
+      <div data-hero-glow className="pointer-events-none absolute right-[-8%] top-[6%] h-[720px] w-[min(740px,85vw)] max-h-[92%] animate-gs-glow bg-[radial-gradient(circle_at_62%_42%,rgba(210,162,76,.17)_0%,rgba(210,162,76,.05)_34%,rgba(210,162,76,0)_62%)]" />
 
       <div className="relative z-[2] mx-auto flex max-w-6xl flex-wrap items-center gap-x-16 gap-y-14 px-5 pb-16 pt-14 sm:px-8 lg:pb-24 lg:pt-24">
         {/* wall text */}
@@ -56,7 +56,7 @@ export function Hero() {
 
         {/* the lantern */}
         <div className="flex min-w-[min(100%,300px)] flex-[1_1_320px] justify-center">
-          <div className="relative">
+          <div className="relative" data-hero-phone>
             {/* waypoints trailing into the dark, toward the device */}
             <span className="absolute -left-24 top-6 h-[7px] w-[7px] rounded-full bg-brass/25 max-lg:hidden" />
             <span className="absolute -left-16 top-16 h-[7px] w-[7px] rounded-full bg-brass/40 max-lg:hidden" />
