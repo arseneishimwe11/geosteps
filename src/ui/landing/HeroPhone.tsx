@@ -77,10 +77,14 @@ function MiniMap() {
   );
 }
 
-export function HeroPhone() {
+/**
+ * The lit screen surface, shared verbatim between the CSS device frame
+ * below and the 3D device's DOM overlay (Phase 3) — one source of truth
+ * for what the guide looks like mid-visit.
+ */
+export function GuideScreen({ className = '' }: { className?: string }) {
   return (
-    <div className="relative w-[clamp(280px,30vw,330px)] rounded-[clamp(44px,4.4vw,52px)] bg-gradient-to-br from-[#232830] via-[#14171b] to-[#0a0c0e] p-[10px] shadow-[0_0_0_1.5px_#34383f,inset_0_1px_1px_rgba(255,255,255,.14),inset_0_-2px_3px_rgba(0,0,0,.6),0_50px_120px_-34px_rgba(210,162,76,.5),0_30px_90px_-30px_rgba(0,0,0,.9)]" style={{ aspectRatio: '9/19.5' }}>
-      <div className="relative flex h-full w-full flex-col overflow-hidden rounded-[clamp(36px,3.6vw,42px)] bg-ink">
+    <div className={`relative flex h-full w-full flex-col overflow-hidden bg-ink ${className}`}>
         {/* top screen glow — the lantern */}
         <div className="pointer-events-none absolute left-1/2 top-[-6%] h-[44%] w-[150%] -translate-x-1/2 bg-[radial-gradient(ellipse_at_50%_0%,rgba(210,162,76,.14),rgba(210,162,76,0)_70%)]" />
         {/* dynamic island */}
@@ -142,9 +146,16 @@ export function HeroPhone() {
           </div>
         </div>
 
-        {/* home indicator */}
-        <div className="absolute bottom-2 left-1/2 z-[6] h-[5px] w-[120px] -translate-x-1/2 rounded-[3px] bg-parchment/40" />
-      </div>
+      {/* home indicator */}
+      <div className="absolute bottom-2 left-1/2 z-[6] h-[5px] w-[120px] -translate-x-1/2 rounded-[3px] bg-parchment/40" />
+    </div>
+  );
+}
+
+export function HeroPhone() {
+  return (
+    <div className="relative w-[clamp(280px,30vw,330px)] rounded-[clamp(44px,4.4vw,52px)] bg-gradient-to-br from-[#232830] via-[#14171b] to-[#0a0c0e] p-[10px] shadow-[0_0_0_1.5px_#34383f,inset_0_1px_1px_rgba(255,255,255,.14),inset_0_-2px_3px_rgba(0,0,0,.6),0_50px_120px_-34px_rgba(210,162,76,.5),0_30px_90px_-30px_rgba(0,0,0,.9)]" style={{ aspectRatio: '9/19.5' }}>
+      <GuideScreen className="rounded-[clamp(36px,3.6vw,42px)]" />
     </div>
   );
 }

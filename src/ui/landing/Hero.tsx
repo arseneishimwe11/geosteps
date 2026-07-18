@@ -1,5 +1,5 @@
 import { LanguageChips, ProofRow } from './bits';
-import { HeroPhone } from './HeroPhone';
+import { HeroDevice } from './hero3d/HeroDevice';
 
 /**
  * The lantern moment (direction 1c from the design exploration): a dark
@@ -61,8 +61,8 @@ export function Hero() {
             <span className="absolute -left-24 top-6 h-[7px] w-[7px] rounded-full bg-brass/25 max-lg:hidden" />
             <span className="absolute -left-16 top-16 h-[7px] w-[7px] rounded-full bg-brass/40 max-lg:hidden" />
             <span className="absolute -left-9 top-28 h-2 w-2 rounded-full bg-brass/60 max-lg:hidden" />
-            <span className="absolute -left-3 top-40 h-[9px] w-[9px] rounded-full bg-brass-bright/85 shadow-[0_0_12px_rgba(236,200,135,.7)] max-lg:hidden" />
-            <HeroPhone />
+            <span className="absolute -left-6 top-40 h-[9px] w-[9px] rounded-full bg-brass-bright/85 shadow-[0_0_12px_rgba(236,200,135,.7)] max-lg:hidden" />
+            <HeroDevice />
           </div>
         </div>
       </div>

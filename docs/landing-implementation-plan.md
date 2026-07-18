@@ -157,6 +157,24 @@ lazy chunk mounted after LCP via IntersectionObserver; graceful chain of fallbac
 (no WebGL / low-power / `prefers-reduced-motion` / mobile-data → the export's CSS
 device frame with the same live screen content).
 
+**Phase 3 outcome (shipped).** Sketchfab downloads require an authenticated
+browser session, which this environment doesn't have — so the model was obtained
+from a public GitHub mirror whose GLB carries the author's own embedded
+provenance (`asset.extras`: author, license, source URL). Final pick =
+**"Apple iPhone 15 Pro Max Black" by polyman, CC BY 4.0** (candidate 3 in the
+table — the dark body we wanted anyway). Debranded surgically with a
+gltf-transform script: the Apple-logo decal mesh deleted and the logo-emboss
+triangles stripped out of the frosted back-glass mesh (camera plateau and
+sensor cap kept), verified by headless renders. Shipped at
+`public/models/phone.glb`, DRACO + WebP, **1.07 MB** (+250 KB lazy local DRACO
+decoder in `public/draco/` — no CDN). Attribution: footer colophon line,
+`public/models/LICENSE-phone.md`, and the GLB's embedded metadata, all noting
+the modification. One implementation trap worth recording: drei's Html
+`transform` maps world units 1:1 to CSS px, so a metres-scale scene makes the
+CSS3D plane ~4500× the canvas and Chromium silently skips rasterising it — the
+scene is therefore mounted at ×150 scale (camera z = 63), which keeps the
+intermediate layer ~13k px and paints reliably.
+
 ## 7. Consistency with the real product
 
 - The hero phone's screen runs the **actual tourist UI** — the real `GuideSession`

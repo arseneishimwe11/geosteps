@@ -17,7 +17,25 @@ export function Footer() {
           <span className="mb-1 tracking-[0.2em] text-stone">COLOPHON</span>
           <span>Fonts self-hosted · no trackers · no analytics</span>
           <span>Positioning runs on the visitor&rsquo;s phone; nothing is recorded or uploaded</span>
-          {/* Device-model CC-BY credit line lands here with the 3D phone (Phase 3). */}
+          <span>
+            3-D device:{' '}
+            <a
+              href="https://sketchfab.com/3d-models/apple-iphone-15-pro-max-black-df17520841214c1792fb8a44c6783ee7"
+              rel="license noopener"
+              className="underline decoration-stone/30 underline-offset-2 transition-colors hover:text-brass"
+            >
+              &ldquo;Apple iPhone 15 Pro Max Black&rdquo;
+            </a>{' '}
+            by{' '}
+            <a href="https://sketchfab.com/Polyman_3D" rel="noopener" className="underline decoration-stone/30 underline-offset-2 transition-colors hover:text-brass">
+              polyman
+            </a>
+            ,{' '}
+            <a href="https://creativecommons.org/licenses/by/4.0/" rel="license noopener" className="underline decoration-stone/30 underline-offset-2 transition-colors hover:text-brass">
+              CC&nbsp;BY&nbsp;4.0
+            </a>{' '}
+            — modified (debranded)
+          </span>
         </div>
 
         <div className="flex flex-col gap-2 font-mono text-[11px] leading-relaxed">
