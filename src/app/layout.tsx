@@ -24,14 +24,13 @@ export const metadata: Metadata = {
   description: 'Indoor audio guide — no app install, no added hardware.',
 };
 
+// Pinch-zoom stays available everywhere by default (WCAG 1.4.4). The one
+// route that suppresses it is the walking guide, which sets its own viewport
+// — see src/app/tour/[venue]/page.tsx.
 export const viewport: Viewport = {
   themeColor: '#000000',
   width: 'device-width',
   initialScale: 1,
-  // The guide is a held-in-hand instrument; accidental pinch-zoom while
-  // walking is far more likely than a deliberate one.
-  maximumScale: 1,
-  userScalable: false,
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -36,7 +36,7 @@ const MECHANISMS = [
         {[0.25, 0.4, 0.6, 0.85, 1].map((o, i) => (
           <span key={i} className="h-2 w-2 rounded-full bg-brass" style={{ opacity: o }} />
         ))}
-        <span className="ml-1 font-mono text-[10px] tracking-[0.14em] text-[#6b6e74]">0.7 m / STEP</span>
+        <span className="ml-1 font-mono text-[10px] tracking-[0.14em] text-[#868b93]">0.7 m / STEP</span>
       </div>
     ),
   },

@@ -218,7 +218,7 @@ export function ScrollWalk() {
               <span className="font-mono text-[10px] font-medium tracking-[0.2em] text-stone">
                 ROYAL PALACE · GROUND FLOOR
               </span>
-              <div className="flex items-center gap-4 font-mono text-[9.5px] font-medium tracking-[0.08em] text-[#6b6e74]">
+              <div className="flex items-center gap-4 font-mono text-[9.5px] font-medium tracking-[0.08em] text-[#868b93]">
                 <span className="flex items-center gap-1.5">
                   <span className="h-[11px] w-[11px] rounded-[3px] border border-brass bg-brass/15" />
                   EXHIBIT ZONE
@@ -316,7 +316,7 @@ export function ScrollWalk() {
 
             <div className="mt-3.5 flex items-center gap-2 px-1">
               <span className="h-2 w-2 shrink-0 rounded-full bg-[radial-gradient(circle,#f2d79a,rgba(242,215,154,0))]" />
-              <span className="font-mono text-[11px] tracking-[0.04em] text-[#6b6e74]">
+              <span className="font-mono text-[11px] tracking-[0.04em] text-[#868b93]">
                 The soft halo is the visitor&rsquo;s approximate position — room-level, honestly fuzzy,
                 never a fake-precise dot.
               </span>
@@ -353,13 +353,13 @@ export function ScrollWalk() {
                   <div className="mb-1 font-mono text-[8px] font-medium tracking-[0.18em] text-stone">NOW PLAYING · EN</div>
                   <div className="truncate text-[13px] text-parchment">{card.track}</div>
                 </div>
-                <span className="shrink-0 font-mono text-[10px] font-medium text-[#6b6e74]">{card.duration}</span>
+                <span className="shrink-0 font-mono text-[10px] font-medium text-[#868b93]">{card.duration}</span>
               </div>
             )}
 
             <div className="mt-6">
               <div className="mb-2.5 flex items-center justify-between">
-                <span className="font-mono text-[9.5px] font-medium tracking-[0.16em] text-[#6b6e74]">
+                <span className="font-mono text-[9.5px] font-medium tracking-[0.16em] text-[#868b93]">
                   <span className="max-lg:hidden">SCROLL — OR DRAG — TO WALK</span>
                   <span className="lg:hidden">DRAG TO WALK THE GALLERY</span>
                 </span>

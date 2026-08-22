@@ -219,6 +219,59 @@ footer contrast raised to AA.
 - Verified in Phase 5 with the existing Playwright rig: Lighthouse + screenshots at
   390 / 768 / 1440.
 
+**Phase 5 outcome (measured on the production build, `next start`).**
+
+| profile | FCP | LCP | CLS | TBT |
+|---|---|---|---|---|
+| mobile 390, Slow-4G + 4× CPU | 1120 ms | 1740 ms | **0.0039** | 655 ms |
+| desktop 1440 | 292 ms | 292 ms | **0** | 56 ms |
+| desktop 1440, reduced motion | 284 ms | 284 ms | **0** | 37 ms |
+
+Bytes over the wire: **baseline 382 KB, of which JS 212 KB** (budget 250 KB) —
+this is what every visitor loads. The lazy 3D chunk adds **1.20 MB**
+(252 KB JS + 873 KB model + 74 KB DRACO decoder; budget 1.8 MB) and only on
+desktops that pass the gate. Zero 3D bytes on mobile, reduced motion, or
+software renderers. `axe-core` (wcag2a/2aa/21a/21aa + best-practice): **no
+violations** at any of the five profiles. Keyboard: 18 stops, every one
+visible with a focus ring, correct order, no pin traps.
+
+Four real defects were found and fixed at this gate, none of them cosmetic:
+
+1. **CLS 0.044 → 0.004.** The hero headline re-wrapped from two lines to
+   three when Newsreader swapped in, dragging the whole hero down.
+   `size-adjust` (which next/font applies) corrects vertical metrics but
+   cannot correct glyph advance widths, so the wrap itself moved. Fixed by
+   authoring every line break explicitly — the same three lines the loaded
+   font produces.
+2. **Un-revealed sections were invisible to assistive tech.** The reveal
+   animation used gsap's `autoAlpha`, which adds `visibility: hidden`,
+   dropping every not-yet-scrolled section out of the accessibility tree and
+   the tab order: a keyboard visitor tabbed from the hero straight to the
+   footer, never reaching the pilot form. Reveals now animate `opacity`, and
+   a `focusin` handler completes a reveal the instant focus enters it.
+3. **Zoom was disabled site-wide.** `user-scalable=no` sat in the root
+   layout — deliberate for the walking guide, but it also suppressed
+   pinch-zoom on the marketing page and the admin tool (WCAG 1.4.4). Now
+   scoped to the `/tour/[venue]` route only.
+4. **Software renderers now fall back.** With no GPU, compiling ~30 PBR
+   programs and convolving the environment map blocked the main thread for
+   **8.4 s (one 6.5 s task)** — versus 27 ms with the 3D off. Lowering `dpr`
+   changed nothing, confirming it is shader/environment setup rather than
+   pixel work. `deviceCan3D` now reads `WEBGL_debug_renderer_info` and
+   refuses SwiftShader/llvmpipe, so machines that would freeze get the CSS
+   device instead. Desktop TBT on this container: 8394 ms → 56 ms.
+
+Also fixed here: the attract walk now runs as a single module-scoped engine
+shared via `useSyncExternalStore`, because the 3D screen mounted its own
+second engine and visibly restarted the walk at the crossfade.
+
+Two honest caveats. This container has **no GPU** (SwiftShader), so the 3D
+path's cost on real hardware is unmeasured — it is verified functionally by
+stubbing the renderer string from the test side, never in product code. And
+Lighthouse itself was not run (not installed offline); the numbers above are
+direct `PerformanceObserver` measurements of the same metrics, which is
+what Lighthouse reports for LCP/CLS/TBT anyway.
+
 ## 9. Explicitly avoided
 
 Centered-hero-with-gradient-blob; Inter/default sans; stock people-at-laptops or

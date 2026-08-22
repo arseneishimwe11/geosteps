@@ -102,7 +102,7 @@ export function GuideScreen({ className = '' }: { className?: string }) {
         <Minimap blueprint={demoBlueprint} position={position} />
         <div className="mt-2 flex items-center gap-1.5 px-0.5">
           <span className="h-[7px] w-[7px] rounded-full bg-[radial-gradient(circle,#f2d79a,rgba(242,215,154,0))]" />
-          <span className="font-mono text-[8px] tracking-[0.08em] text-[#6b6e74]">
+          <span className="font-mono text-[8px] tracking-[0.08em] text-[#868b93]">
             approximate position — room-level, not a precise dot
           </span>
         </div>
@@ -132,7 +132,7 @@ export function GuideScreen({ className = '' }: { className?: string }) {
                   <div className="h-full w-[38%] rounded-sm bg-gradient-to-r from-brass to-brass-bright" />
                   <span className="absolute left-[38%] top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-brass-bright shadow-[0_0_8px_rgba(236,200,135,.8)]" />
                 </div>
-                <span className="font-mono text-[8.5px] font-medium text-[#6b6e74]">1:12</span>
+                <span className="font-mono text-[8.5px] font-medium text-[#868b93]">1:12</span>
               </div>
             </div>
           </div>

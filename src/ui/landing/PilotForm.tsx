@@ -98,7 +98,7 @@ export function PilotForm() {
       >
         {state === 'submitting' ? 'Sending…' : 'Request a pilot'}
       </button>
-      <p className="mt-4 text-xs leading-relaxed text-stone/70">
+      <p className="mt-4 text-xs leading-relaxed text-stone/85">
         Goes straight to the team — no mailing lists, no trackers.
       </p>
     </form>

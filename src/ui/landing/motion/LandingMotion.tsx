@@ -32,17 +32,29 @@ export function LandingMotion() {
     gsap.ticker.add(tick);
     gsap.ticker.lagSmoothing(0);
 
+    // Reveals hide with `opacity`, deliberately NOT gsap's `autoAlpha`.
+    // autoAlpha adds visibility:hidden, which drops every un-revealed section
+    // out of the accessibility tree and the tab order — a keyboard visitor
+    // tabbed straight from the hero to the footer, never reaching the pilot
+    // form. Opacity keeps the content present and focusable; the focusin
+    // handler below finishes a reveal the instant focus lands inside one, so
+    // nobody is ever focused on something they cannot see.
+    const revealTweens = new Map<HTMLElement, gsap.core.Tween>();
+
     const ctx = gsap.context(() => {
       // --- reveals -----------------------------------------------------------
       document.querySelectorAll<HTMLElement>('[data-reveal]').forEach((el) => {
-        gsap.from(el, {
-          y: 28,
-          autoAlpha: 0,
-          duration: 0.9,
-          ease: 'power3.out',
-          delay: Number(el.dataset.revealDelay ?? 0),
-          scrollTrigger: { trigger: el, start: 'top 86%', once: true },
-        });
+        revealTweens.set(
+          el,
+          gsap.from(el, {
+            y: 28,
+            opacity: 0,
+            duration: 0.9,
+            ease: 'power3.out',
+            delay: Number(el.dataset.revealDelay ?? 0),
+            scrollTrigger: { trigger: el, start: 'top 86%', once: true },
+          }),
+        );
       });
 
       // --- language-coverage bars -------------------------------------------
@@ -103,6 +115,20 @@ export function LandingMotion() {
       }
     });
 
+    // Tabbing into a section that has not revealed yet finishes its reveal at
+    // once, and scrolls it into view — keyboard navigation never lands on
+    // something the visitor cannot see.
+    const onFocusIn = (e: Event) => {
+      const el = (e.target as Element)?.closest?.('[data-reveal]') as HTMLElement | null;
+      if (!el) return;
+      const tween = revealTweens.get(el);
+      if (tween && tween.progress() < 1) {
+        tween.progress(1);
+        el.scrollIntoView({ block: 'nearest', behavior: 'auto' });
+      }
+    };
+    document.addEventListener('focusin', onFocusIn);
+
     // Lenis owns wheel/touch scrolling; keep anchor links working through it.
     const onAnchorClick = (e: Event) => {
       const a = (e.target as Element).closest('a[href^="#"]');
@@ -117,6 +143,7 @@ export function LandingMotion() {
     document.addEventListener('click', onAnchorClick);
 
     return () => {
+      document.removeEventListener('focusin', onFocusIn);
       document.removeEventListener('click', onAnchorClick);
       ctx.revert();
       gsap.ticker.remove(tick);

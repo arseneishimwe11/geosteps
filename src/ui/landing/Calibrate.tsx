@@ -48,7 +48,7 @@ export function Calibrate() {
             <div className="ml-1.5 flex items-center gap-2">
               <span className="h-2 w-2 rounded-full bg-brass shadow-[0_0_10px_rgba(210,162,76,.6)]" />
               <span className="font-display text-[15px] text-parchment">geosteps</span>
-              <span className="font-mono text-[10px] font-medium tracking-[0.1em] text-[#6b6e74]">calibration</span>
+              <span className="font-mono text-[10px] font-medium tracking-[0.1em] text-[#868b93]">calibration</span>
             </div>
             <span className="ml-auto hidden rounded-lg border border-hairline px-3 py-1.5 font-mono text-[11px] text-[#c9c1b0] sm:block">
               Royal Palace Museum ▾

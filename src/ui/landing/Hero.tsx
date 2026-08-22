@@ -24,12 +24,21 @@ export function Hero() {
       <div className="relative z-[2] mx-auto flex max-w-6xl flex-wrap items-center gap-x-16 gap-y-14 px-5 pb-16 pt-14 sm:px-8 lg:pb-24 lg:pt-24">
         {/* wall text */}
         <div className="min-w-[min(100%,320px)] flex-[1_1_460px]">
-          <div className="mb-7 flex items-center gap-2.5 font-mono text-[11px] font-medium tracking-[0.26em] text-brass">
-            <span className="h-1.5 w-1.5 rounded-full bg-moss shadow-[0_0_10px] shadow-moss" />
+          {/* items-start, not items-center: the label wraps to two lines on
+              narrow screens and a centred dot then floats beside the gap */}
+          <div className="mb-7 flex items-start gap-2.5 font-mono text-[11px] font-medium tracking-[0.26em] text-brass">
+            <span className="mt-[0.42em] h-1.5 w-1.5 shrink-0 rounded-full bg-moss shadow-[0_0_10px] shadow-moss" />
             SELF-GUIDED AUDIO · FOR MUSEUMS &amp; CULTURAL SITES
           </div>
+          {/* Every line break is authored, at every width. Newsreader and the
+              fallback serif have different glyph advances, so an unforced wrap
+              re-flows the headline when the webfont swaps in and drags the
+              whole hero down with it (measured: 0.042 CLS on throttled mobile).
+              These are the same three lines the loaded font produces — pinning
+              them costs nothing visually and makes the swap invisible. */}
           <h1 className="animate-gs-warm font-display text-[clamp(42px,7vw,76px)] font-medium leading-[1.02] tracking-[-0.022em] text-parchment">
-            Scan. Walk. Listen&nbsp;—<br />
+            Scan. Walk.<br />
+            Listen&nbsp;—<br />
             the story <em className="font-medium italic text-brass-bright">finds you.</em>
           </h1>
           <p className="mt-6 max-w-[38ch] text-[clamp(16px,1.5vw,18.5px)] leading-[1.62] text-stone">

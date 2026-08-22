@@ -18,7 +18,7 @@
  * its static server-rendered frame.
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useSyncExternalStore } from 'react';
 import { PositionEngine } from '../../../engine/positionEngine';
 import type { AcousticFingerprint, FloorBlueprint, PositionState } from '../../../engine/types';
 import demoBlueprintJson from '../../../../venues/demo/blueprint.json';
@@ -111,63 +111,77 @@ export interface AttractState {
   live: boolean;
 }
 
-export function useAttractGuide(): AttractState {
-  const [state, setState] = useState<AttractState>({
-    position: STATIC_POSITION,
-    lastZoneId: 'royal-drums',
-    live: false,
+/**
+ * One walk for the whole page.
+ *
+ * The screen is rendered twice — once in the CSS device frame and once on the
+ * 3D device's glass — and the 3D copy only mounts after the model has loaded.
+ * With a per-component engine, that late mount started its own walk from step
+ * zero, so the screen visibly jumped back to the frozen frame the moment the
+ * crossfade landed. A single module-scoped engine, shared through
+ * useSyncExternalStore (the same store contract GuideSession uses), keeps both
+ * copies on the same step and halves the work.
+ */
+const INITIAL: AttractState = { position: STATIC_POSITION, lastZoneId: 'royal-drums', live: false };
+
+let current: AttractState = INITIAL;
+const listeners = new Set<() => void>();
+let started = false;
+
+function emit(next: AttractState): void {
+  current = next;
+  listeners.forEach((cb) => cb());
+}
+
+function startWalk(): void {
+  if (started) return;
+  started = true;
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  const engine = new PositionEngine(demoBlueprint);
+  let lastZoneId: string | null = null;
+
+  engine.onPosition((position) => {
+    if (position.currentZoneId) lastZoneId = position.currentZoneId;
+    emit({ position, lastZoneId, live: true });
   });
 
-  useEffect(() => {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  // geofence debounce needs wall-clock ticks while standing still
+  setInterval(() => engine.tick(Date.now()), 500);
 
-    const engine = new PositionEngine(demoBlueprint);
-    let lastZoneId: string | null = null;
-    let cancelled = false;
-    const timers: ReturnType<typeof setTimeout>[] = [];
+  const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
-    const offPosition = engine.onPosition((position) => {
-      if (cancelled) return;
-      if (position.currentZoneId) lastZoneId = position.currentZoneId;
-      setState({ position, lastZoneId, live: true });
-    });
-
-    // geofence debounce needs wall-clock ticks while standing still
-    const tick = setInterval(() => engine.tick(Date.now()), 500);
-
-    const sleep = (ms: number) =>
-      new Promise<void>((resolve) => {
-        timers.push(setTimeout(resolve, ms));
-      });
-
-    (async () => {
-      await sleep(1200); // let the crossfade settle before the walk begins
-      while (!cancelled) {
-        for (const leg of ROUTE) {
-          if (cancelled) return;
-          if (leg.kind === 'walk') {
-            for (let i = 0; i < leg.steps && !cancelled; i++) {
-              walkOneStep(engine, demoBlueprint, leg.bearingDeg);
-              await sleep(STEP_MS);
-            }
-          } else {
-            const until = Date.now() + leg.ms;
-            while (Date.now() < until && !cancelled) {
-              sampleAmbient(engine, demoBlueprint, leg.zoneId);
-              await sleep(ACOUSTIC_EVERY_MS);
-            }
+  // Runs for the lifetime of the page: it is the hero, always on screen or a
+  // scroll away, and there is exactly one of it.
+  void (async () => {
+    await sleep(1200); // let the first paint settle before the walk begins
+    for (;;) {
+      for (const leg of ROUTE) {
+        if (leg.kind === 'walk') {
+          for (let i = 0; i < leg.steps; i++) {
+            walkOneStep(engine, demoBlueprint, leg.bearingDeg);
+            await sleep(STEP_MS);
+          }
+        } else {
+          const until = Date.now() + leg.ms;
+          while (Date.now() < until) {
+            sampleAmbient(engine, demoBlueprint, leg.zoneId);
+            await sleep(ACOUSTIC_EVERY_MS);
           }
         }
       }
-    })();
+    }
+  })();
+}
 
-    return () => {
-      cancelled = true;
-      timers.forEach(clearTimeout);
-      clearInterval(tick);
-      offPosition();
-    };
-  }, []);
-
-  return state;
+export function useAttractGuide(): AttractState {
+  useEffect(startWalk, []);
+  return useSyncExternalStore(
+    (cb) => {
+      listeners.add(cb);
+      return () => listeners.delete(cb);
+    },
+    () => current,
+    () => INITIAL, // server render: the frozen mid-visit frame
+  );
 }

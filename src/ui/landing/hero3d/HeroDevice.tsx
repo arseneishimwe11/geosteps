@@ -43,7 +43,19 @@ function deviceCan3D(): boolean {
   if (nav.deviceMemory !== undefined && nav.deviceMemory < 4) return false;
   try {
     const probe = document.createElement('canvas');
-    if (!probe.getContext('webgl2') && !probe.getContext('webgl')) return false;
+    const gl = (probe.getContext('webgl2') ?? probe.getContext('webgl')) as WebGLRenderingContext | null;
+    if (!gl) return false;
+    // A software rasterizer (no GPU, or a driver the browser blocklisted)
+    // reports itself here. It can run the scene, but compiling ~30 PBR
+    // programs and convolving the environment map on the CPU blocks the
+    // main thread for seconds — measured at 6.5 s in one task on
+    // SwiftShader. That is far worse than no 3D at all, so these machines
+    // get the CSS device instead. When the extension is unavailable we
+    // cannot tell, and assume real hardware (the common case).
+    const info = gl.getExtension('WEBGL_debug_renderer_info');
+    const renderer = info ? String(gl.getParameter(info.UNMASKED_RENDERER_WEBGL)) : '';
+    gl.getExtension('WEBGL_lose_context')?.loseContext();
+    if (/swiftshader|llvmpipe|softpipe|software|basic render/i.test(renderer)) return false;
   } catch {
     return false;
   }
